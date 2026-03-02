@@ -3,7 +3,6 @@ import { Loader2 } from 'lucide-react';
 import { MockAPI } from '../api/mockServices';
 import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from '../hooks/useTranslation';
-import { useUserStore } from '../store/userStore';
 
 export default function AuthPage({ onLogin }: { onLogin: () => void }) {
     const [pin, setPin] = useState('');

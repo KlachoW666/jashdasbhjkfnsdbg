@@ -11,6 +11,8 @@ import AuthPage from './pages/AuthPage';
 import AdminPage from './pages/AdminPage';
 import { useUserStore } from './store/userStore';
 
+const isInsideTelegram = () => typeof window !== 'undefined' && !!(window as any).Telegram?.WebApp;
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col h-[100dvh] overflow-hidden bg-bg-main text-text-main">
     <Header />
@@ -18,9 +20,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
       {children}
     </PageContainer>
     <BottomNav />
-    <footer className="text-center pt-2 pb-3 text-[11px] text-[#8B949E] shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-      @ZYPHEXAUTOTRAIDINGBOT
-    </footer>
+    {!isInsideTelegram() && (
+      <footer className="text-center pt-2 pb-3 text-[11px] text-[#8B949E] shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        @ZYPHEXAUTOTRAIDINGBOT
+      </footer>
+    )}
   </div>
 );
 

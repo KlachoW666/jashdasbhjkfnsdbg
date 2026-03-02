@@ -35,7 +35,7 @@ if [ -d "$APP_DIR" ]; then
 fi
 
 git clone "$REPO_URL" "$APP_DIR"
-cd "$APP_DIR/frontend"
+cd "$APP_DIR/promt/frontend"
 
 # Build the frontend application
 echo "Installing NPM packages..."
@@ -53,7 +53,7 @@ server {
     listen 80;
     server_name _;
 
-    root /var/www/miniapp/frontend/dist;
+    root /var/www/miniapp/promt/frontend/dist;
     index index.html;
 
     location / {
@@ -77,5 +77,5 @@ echo "2. Edit /etc/nginx/sites-available/miniapp and replace '_' with your domai
 echo "3. Run SSL setup: certbot --nginx -d your-domain.com"
 echo "4. Reload nginx: systemctl reload nginx"
 echo ""
-echo "Your app is currently being served on HTTP (Port 80) from /var/www/miniapp/frontend/dist"
+echo "Your app is currently being served on HTTP (Port 80) from /var/www/miniapp/promt/frontend/dist"
 echo "======================================"

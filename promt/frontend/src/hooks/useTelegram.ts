@@ -8,6 +8,7 @@ export function useTelegram() {
         user: tg?.initDataUnsafe?.user as WebAppUser | undefined,
         initData: tg?.initData,
         queryId: tg?.initDataUnsafe?.query_id,
+        startParam: tg?.initDataUnsafe?.start_param,
         colorScheme: tg?.colorScheme,
         expand: () => tg?.expand(),
         close: () => tg?.close(),

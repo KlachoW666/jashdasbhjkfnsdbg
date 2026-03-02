@@ -9,10 +9,13 @@
     <script>
       // Automatically expand Telegram WebApp when initialized
       if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        
-        let colorScheme = window.Telegram.WebApp.colorScheme || 'dark';
+        var tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        // Match app theme: header and background (Zyphex dark #0D1117)
+        if (tg.setHeaderColor) tg.setHeaderColor('#0D1117');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#0D1117');
+        var colorScheme = tg.colorScheme || 'dark';
         if (colorScheme === 'dark') {
           document.documentElement.classList.add('dark');
         }

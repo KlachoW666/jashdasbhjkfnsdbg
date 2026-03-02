@@ -7,6 +7,7 @@ interface UserState {
     pin: string | null;
     userId: string;
     refCode: string;
+    referredBy: string | null;
     botMode: 'safe' | 'balanced' | 'aggressive';
     language: 'ru' | 'en';
     isAdmin: boolean;
@@ -15,6 +16,7 @@ interface UserState {
     setLanguage: (lang: 'ru' | 'en') => void;
     logout: () => void;
     setUserId: (id: string) => void;
+    setReferredBy: (param: string | null) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -24,6 +26,7 @@ export const useUserStore = create<UserState>()(
             pin: null,
             userId: 'tg_6976131338',
             refCode: 'V37DEPE2',
+            referredBy: null,
             botMode: 'balanced',
             language: 'ru',
             isAdmin: true, // Defaulting to true for 'tg_6976131338' matching ADMINID
@@ -35,6 +38,7 @@ export const useUserStore = create<UserState>()(
             setLanguage: (lang) => set({ language: lang }),
             logout: () => set({ isAuthenticated: false, pin: null }),
             setUserId: (id) => set({ userId: id, isAdmin: CONFIG.ADMIN_IDS.includes(id) }),
+            setReferredBy: (param) => set({ referredBy: param }),
         }),
         {
             name: 'zyphex-user-storage',

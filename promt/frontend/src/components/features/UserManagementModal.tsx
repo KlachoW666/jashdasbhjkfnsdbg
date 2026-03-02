@@ -153,7 +153,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                     </h2>
                 </div>
                 {selectedUser && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        {selectedUser.registered === false && <span className="text-[10px] bg-[#8B949E]/30 text-[#8B949E] px-2 py-0.5 rounded-md font-bold">Не зарег.</span>}
                         {selectedUser.vipStatus && <span className="text-[10px] bg-[#F0883E]/20 text-[#F0883E] px-2 py-0.5 rounded-md font-bold">VIP</span>}
                         {selectedUser.isBanned && <span className="text-[10px] bg-[#FF4444]/20 text-[#FF4444] px-2 py-0.5 rounded-md font-bold">BAN</span>}
                     </div>
@@ -189,6 +190,7 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                                     <div className="min-w-0">
                                         <div className="flex items-center gap-2">
                                             <span className="font-bold text-white truncate">{user.name}</span>
+                                            {user.registered === false && <span className="text-[10px] bg-[#8B949E]/30 text-[#8B949E] px-2 py-0.5 rounded-md font-bold shrink-0">Не зарег.</span>}
                                             {user.vipStatus && <Star size={12} className="text-[#F0883E] shrink-0" />}
                                             {user.isBanned && <span className="text-[10px] bg-[#FF4444]/20 text-[#FF4444] px-2 py-0.5 rounded-md font-bold uppercase shrink-0">Ban</span>}
                                         </div>
@@ -265,21 +267,28 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                             </div>
                         )}
 
-                        {/* Actions */}
+                        {/* Actions — only for registered users */}
                         <div className="space-y-2">
-                            <h4 className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">Действия</h4>
-
-                            <ActionButton icon={DollarSign} label="Изменить баланс" onClick={handleUpdateBalance} color="#00D26A" />
-                            <ActionButton icon={Gift} label="Начислить бонус" onClick={handleAddBonus} color="#58A6FF" />
-                            <ActionButton icon={Star} label={selectedUser.vipStatus ? 'Снять VIP' : 'Дать VIP'} onClick={handleToggleVip} color="#F0883E" />
-                            <ActionButton icon={MessageSquare} label="Заметка" onClick={handleUpdateNotes} color="#8B949E" />
-                            <ActionButton
-                                icon={selectedUser.isBanned ? CheckCircle2 : ShieldAlert}
-                                label={selectedUser.isBanned ? 'Разбанить' : 'Забанить'}
-                                onClick={handleToggleBan}
-                                color={selectedUser.isBanned ? '#00D26A' : '#FF4444'}
-                            />
-                            <ActionButton icon={RotateCcw} label="Сбросить баланс" onClick={handleResetBalance} color="#FF6B6B" />
+                            {selectedUser.registered === false ? (
+                                <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4 text-center text-[#8B949E] text-sm">
+                                    Только открыл приложение. Действия доступны после регистрации в боте.
+                                </div>
+                            ) : (
+                                <>
+                                    <h4 className="text-[11px] font-bold text-[#8B949E] uppercase tracking-wider">Действия</h4>
+                                    <ActionButton icon={DollarSign} label="Изменить баланс" onClick={handleUpdateBalance} color="#00D26A" />
+                                    <ActionButton icon={Gift} label="Начислить бонус" onClick={handleAddBonus} color="#58A6FF" />
+                                    <ActionButton icon={Star} label={selectedUser.vipStatus ? 'Снять VIP' : 'Дать VIP'} onClick={handleToggleVip} color="#F0883E" />
+                                    <ActionButton icon={MessageSquare} label="Заметка" onClick={handleUpdateNotes} color="#8B949E" />
+                                    <ActionButton
+                                        icon={selectedUser.isBanned ? CheckCircle2 : ShieldAlert}
+                                        label={selectedUser.isBanned ? 'Разбанить' : 'Забанить'}
+                                        onClick={handleToggleBan}
+                                        color={selectedUser.isBanned ? '#00D26A' : '#FF4444'}
+                                    />
+                                    <ActionButton icon={RotateCcw} label="Сбросить баланс" onClick={handleResetBalance} color="#FF6B6B" />
+                                </>
+                            )}
                         </div>
                     </div>
                 )}

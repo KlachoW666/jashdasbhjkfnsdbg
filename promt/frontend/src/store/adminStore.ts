@@ -17,6 +17,8 @@ export interface MockAppUser {
     botMode: 'safe' | 'balanced' | 'aggressive';
     notes: string;
     vipStatus: boolean;
+    /** false = only opened app, not registered yet */
+    registered?: boolean;
 }
 
 export interface Transaction {

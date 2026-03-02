@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Layout/Header';
 import BottomNav from './components/Layout/BottomNav';
@@ -10,6 +11,7 @@ import SettingsPage from './pages/SettingsPage';
 import AuthPage from './pages/AuthPage';
 import AdminPage from './pages/AdminPage';
 import { useUserStore } from './store/userStore';
+import { MockAPI } from './api/mockServices';
 
 const isInsideTelegram = () => typeof window !== 'undefined' && !!(window as any).Telegram?.WebApp;
 
@@ -30,6 +32,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
 
 function App() {
   const { isAuthenticated } = useUserStore();
+
+  useEffect(() => {
+    MockAPI.syncVisitor().catch(() => {});
+  }, []);
 
   return (
     <Router>

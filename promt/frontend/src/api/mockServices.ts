@@ -15,6 +15,12 @@ function getTelegramUser() {
 }
 
 export const MockAPI = {
+    /** Sync current Telegram user as visitor (everyone who opened the app). */
+    async syncVisitor(): Promise<void> {
+        const { telegramId, username, firstName } = getTelegramUser();
+        await api.post('/api/visitors/sync', { telegramId, username, firstName });
+    },
+
     async checkRegistered(): Promise<boolean> {
         const { telegramId } = getTelegramUser();
         const res = await api.get<{ exists: boolean }>(`/api/auth/check?telegramId=${encodeURIComponent(telegramId)}`);

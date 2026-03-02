@@ -36,6 +36,16 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by_ref_code);
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS visitors (
+    telegram_id TEXT PRIMARY KEY,
+    username TEXT,
+    first_name TEXT,
+    first_seen TEXT DEFAULT (datetime('now')),
+    last_seen TEXT DEFAULT (datetime('now'))
+  );
+`);
+
 function refCodeFromTelegramId(telegramId) {
   const num = parseInt(String(telegramId).replace(/\D/g, ''), 10) || 0;
   const s = num.toString(36).toUpperCase();
@@ -74,24 +84,70 @@ export function updateLastActive(id) {
   db.prepare('UPDATE users SET last_active = datetime("now") WHERE id = ?').run(id);
 }
 
+export function upsertVisitor(telegramId, username, firstName) {
+  const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const id = String(telegramId);
+  const existing = db.prepare('SELECT 1 FROM visitors WHERE telegram_id = ?').get(id);
+  if (existing) {
+    db.prepare('UPDATE visitors SET username = ?, first_name = ?, last_seen = ? WHERE telegram_id = ?')
+      .run(username || '', firstName || '', now, id);
+  } else {
+    db.prepare('INSERT INTO visitors (telegram_id, username, first_name, first_seen, last_seen) VALUES (?, ?, ?, ?, ?)')
+      .run(id, username || '', firstName || '', now, now);
+  }
+}
 
-export function listUsers() {
-  const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
-  return rows.map(row => ({
-    id: row.id,
-    name: row.first_name || row.username || row.telegram_id || row.id,
+function mapRowToAppUser(row, registered = true) {
+  return {
+    id: row.id || `visitor_${row.telegram_id}`,
+    name: row.first_name || row.username || row.telegram_id || row.id || row.telegram_id,
     balance: row.balance_usdt ?? 0,
     isBanned: !!row.is_banned,
-    registeredAt: row.created_at ? row.created_at.slice(0, 10) : '',
+    registeredAt: row.created_at ? row.created_at.slice(0, 10) : (row.first_seen || '').slice(0, 10),
     totalDeposited: row.total_deposited ?? 0,
     totalWithdrawn: row.total_withdrawn ?? 0,
     referralCount: row.referral_count ?? 0,
     referralEarnings: row.referral_earnings ?? 0,
-    lastActive: row.last_active ? row.last_active.slice(0, 16).replace('T', ' ') : '',
+    lastActive: (row.last_active || row.last_seen || '').slice(0, 16).replace('T', ' '),
     botMode: row.bot_mode || 'balanced',
     notes: row.notes || '',
     vipStatus: !!row.is_vip,
-  }));
+    registered,
+  };
+}
+
+export function listUsers() {
+  const rows = db.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+  return rows.map(row => mapRowToAppUser(row, true));
+}
+
+/** All people who opened the app: registered users + visitors (not yet registered). */
+export function listAllPeople() {
+  const users = listUsers();
+  const registeredIds = new Set(db.prepare('SELECT telegram_id FROM users').all().map(r => r.telegram_id));
+  const visitorRows = db.prepare('SELECT * FROM visitors ORDER BY last_seen DESC').all();
+  const visitors = visitorRows
+    .filter(r => !registeredIds.has(r.telegram_id))
+    .map(row => mapRowToAppUser({
+      id: `visitor_${row.telegram_id}`,
+      telegram_id: row.telegram_id,
+      first_name: row.first_name,
+      username: row.username,
+      first_seen: row.first_seen,
+      last_seen: row.last_seen,
+      last_active: row.last_seen,
+      created_at: row.first_seen,
+      balance_usdt: 0,
+      is_banned: 0,
+      is_vip: 0,
+      total_deposited: 0,
+      total_withdrawn: 0,
+      referral_count: 0,
+      referral_earnings: 0,
+      bot_mode: 'balanced',
+      notes: '',
+    }, false));
+  return [...users, ...visitors];
 }
 
 export function updateUser(id, patch) {

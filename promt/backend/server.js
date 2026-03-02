@@ -9,11 +9,13 @@ import {
   findUserByTelegramId,
   updateLastActive,
   listUsers,
+  listAllPeople,
   updateUser,
   getUserById,
   addBonusToUser,
   resetUserBalance,
   getReferralInfo,
+  upsertVisitor,
 } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -29,6 +31,19 @@ const isAdmin = (userId) => {
   const id = String(userId).replace(/^tg_/, '');
   return ADMIN_IDS.includes(id) || ADMIN_IDS.includes(userId);
 };
+
+// POST /api/visitors/sync — record that user opened the app (no auth)
+app.post('/api/visitors/sync', (req, res) => {
+  try {
+    const { telegramId, username, firstName } = req.body;
+    if (!telegramId) return res.status(400).json({ error: 'telegramId required' });
+    upsertVisitor(String(telegramId), username || '', firstName || '');
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
 
 // GET /api/auth/check?telegramId= — check if user is registered
 app.get('/api/auth/check', (req, res) => {
@@ -111,14 +126,14 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
-// GET /api/users — list users (admin only)
+// GET /api/users — list all people (registered + visitors who opened app) (admin only)
 app.get('/api/users', (req, res) => {
   try {
     const userId = req.query.userId || req.headers['x-user-id'];
     if (!userId || !isAdmin(userId)) {
       return res.status(403).json({ error: 'forbidden' });
     }
-    const users = listUsers();
+    const users = listAllPeople();
     res.json({ users });
   } catch (e) {
     console.error(e);

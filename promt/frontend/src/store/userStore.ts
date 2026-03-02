@@ -2,11 +2,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CONFIG } from '../config';
 
+/** Unique 6–8 char referral code from Telegram user id (deterministic). */
+export function generateRefCode(userId: string): string {
+    const num = parseInt(userId.replace(/\D/g, ''), 10) || 0;
+    const s = num.toString(36).toUpperCase();
+    return s.length >= 6 ? s.slice(0, 8) : s.padStart(6, 'X');
+}
+
 interface UserState {
     isAuthenticated: boolean;
     pin: string | null;
     userId: string;
-    refCode: string;
     referredBy: string | null;
     botMode: 'safe' | 'balanced' | 'aggressive';
     language: 'ru' | 'en';
@@ -25,7 +31,6 @@ export const useUserStore = create<UserState>()(
             isAuthenticated: false,
             pin: null,
             userId: 'tg_6976131338',
-            refCode: 'V37DEPE2',
             referredBy: null,
             botMode: 'balanced',
             language: 'ru',

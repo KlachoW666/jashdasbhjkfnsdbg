@@ -1,17 +1,19 @@
 import { Users, Copy, Gift, CheckCircle2 } from 'lucide-react';
-import { useUserStore } from '../store/userStore';
+import { useUserStore, generateRefCode } from '../store/userStore';
 import { useTelegram } from '../hooks/useTelegram';
 import { useState } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 
+const BOT_USERNAME = 'ZyphexAutotraidingBot';
+
 export default function ReferralPage() {
-    const { refCode } = useUserStore();
+    const { userId, referredBy } = useUserStore();
+    const refCode = generateRefCode(userId);
     const { hapticFeedback } = useTelegram();
     const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
 
-    const botUsername = 'ZyphexAutotraidingBot';
-    const refLink = `https://t.me/${botUsername}/app?startapp=${refCode}`;
+    const refLink = `https://t.me/${BOT_USERNAME}/app?startapp=${refCode}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(refLink);
@@ -22,6 +24,11 @@ export default function ReferralPage() {
 
     return (
         <div className="space-y-6">
+            {referredBy && (
+                <div className="bg-[#00D26A]/10 border border-[#00D26A]/30 rounded-xl px-4 py-3 text-sm text-[#00D26A]">
+                    {t('referral.invitedBy')} <span className="font-bold font-mono">{referredBy}</span>
+                </div>
+            )}
             <div className="bg-gradient-to-br from-[#161B22] to-[#0D1117] border border-[#30363D] rounded-2xl p-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#00D26A]/5 blur-[60px] rounded-full"></div>
 

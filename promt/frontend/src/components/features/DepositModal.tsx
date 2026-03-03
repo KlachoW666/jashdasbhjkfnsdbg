@@ -20,38 +20,40 @@ export default function DepositModal({ onClose }: { onClose: () => void }) {
     const { hapticFeedback } = useTelegram();
     const { t } = useTranslation();
 
+    // Request counter to prevent race conditions when switching networks fast
+    const requestIdRef = useRef(0);
+
     useEffect(() => {
-        let isMounted = true;
+        const currentRequestId = ++requestIdRef.current;
         setLoading(true);
+        setAddress('');
+        setMemo('');
         setDepositStatus('none');
+        setCopied(false);
+        setCopiedMemo(false);
 
         MockAPI.getDepositAddress(activeNetwork).then((data) => {
-            if (isMounted) {
-                setAddress(data.address);
-                setMemo(data.memo);
-                setLoading(false);
-                setCopied(false);
-                setCopiedMemo(false);
-            }
+            // Only apply if this is still the latest request
+            if (currentRequestId !== requestIdRef.current) return;
+            setAddress(data.address);
+            setMemo(data.memo);
+            setLoading(false);
         });
 
         // Start polling for deposit confirmation
         if (pollRef.current) clearInterval(pollRef.current);
         pollRef.current = setInterval(async () => {
-            if (!isMounted) return;
+            if (currentRequestId !== requestIdRef.current) return;
             const status = await MockAPI.checkDepositStatus(activeNetwork);
-            if (isMounted) {
-                setDepositStatus(status);
-                if (status === 'confirmed') {
-                    hapticFeedback?.notificationOccurred('success');
-                    // Refresh wallet balance
-                    MockAPI.fetchBalance();
-                }
+            if (currentRequestId !== requestIdRef.current) return;
+            setDepositStatus(status);
+            if (status === 'confirmed') {
+                hapticFeedback?.notificationOccurred('success');
+                MockAPI.fetchBalance();
             }
-        }, 10_000); // Poll every 10 seconds
+        }, 10_000);
 
         return () => {
-            isMounted = false;
             if (pollRef.current) clearInterval(pollRef.current);
         };
     }, [activeNetwork]);

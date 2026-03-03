@@ -58,11 +58,10 @@ cd "$APP_DIR/promt/backend"
 npm install
 if pm2 describe zyphex-api >/dev/null 2>&1; then
     echo "Restarting backend (zyphex-api)..."
-    pm2 restart zyphex-api
-else
-    echo "Starting backend (zyphex-api)..."
-    pm2 start server.js --name zyphex-api
+    pm2 delete zyphex-api 2>/dev/null || true
 fi
+echo "Starting backend (zyphex-api) with cwd=$APP_DIR/promt/backend..."
+pm2 start server.js --name zyphex-api --cwd "$APP_DIR/promt/backend"
 pm2 save 2>/dev/null || true
 pm2 startup 2>/dev/null || true
 

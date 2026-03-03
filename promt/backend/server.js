@@ -54,6 +54,11 @@ const isAdmin = (userId) => {
   return ADMIN_IDS.includes(id) || ADMIN_IDS.includes(userId);
 };
 
+// Health check (for Nginx / pm2; no auth)
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true });
+});
+
 // ══════════════════════════════════════
 // Visitors
 // ══════════════════════════════════════

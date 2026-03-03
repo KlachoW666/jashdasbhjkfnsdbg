@@ -269,20 +269,36 @@ export function listAllPeople() {
 }
 
 export function updateUser(id, patch) {
-  const allowed = ['balance_usdt', 'is_banned', 'is_vip', 'notes', 'bot_mode'];
+  // First check if user exists
+  const existing = db.prepare('SELECT 1 FROM users WHERE id = ?').get(id);
+  if (!existing) return null;
+
+  // Key normalization: accept both frontend names and DB column names
+  const keyMap = {
+    balance: 'balance_usdt',
+    balance_usdt: 'balance_usdt',
+    isBanned: 'is_banned',
+    is_banned: 'is_banned',
+    vipStatus: 'is_vip',
+    is_vip: 'is_vip',
+    notes: 'notes',
+    bot_mode: 'bot_mode',
+    botMode: 'bot_mode',
+  };
+  const allowed = new Set(['balance_usdt', 'is_banned', 'is_vip', 'notes', 'bot_mode']);
+
   const updates = [];
   const values = [];
   for (const [k, v] of Object.entries(patch)) {
-    const col = k === 'balance' ? 'balance_usdt' : k === 'isBanned' ? 'is_banned' : k === 'vipStatus' ? 'is_vip' : k;
-    if (allowed.includes(col) || col === 'balance_usdt') {
-      updates.push(`${col} = ?`);
-      values.push(v === true ? 1 : v === false ? 0 : v);
-    }
+    const col = keyMap[k];
+    if (!col || !allowed.has(col)) continue;
+    updates.push(`${col} = ?`);
+    values.push(v === true ? 1 : v === false ? 0 : v);
   }
-  if (updates.length === 0) return null;
+  if (updates.length === 0) return getUserById(id); // nothing to update but user exists
   values.push(id);
   db.prepare(`UPDATE users SET ${updates.join(', ')}, last_active = datetime("now") WHERE id = ?`).run(...values);
-  return db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+  return getUserById(id);
 }
 
 export function getUserById(id) {

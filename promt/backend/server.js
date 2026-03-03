@@ -360,18 +360,15 @@ app.patch('/api/users/:id', (req, res) => {
       return res.status(403).json({ error: 'forbidden' });
     }
     const { id } = req.params;
-    const body = req.body;
-    const patch = {};
-    if (typeof body.balance === 'number') patch.balance_usdt = body.balance;
-    if (typeof body.isBanned === 'boolean') patch.is_banned = body.isBanned;
-    if (typeof body.vipStatus === 'boolean') patch.is_vip = body.vipStatus;
-    if (typeof body.notes === 'string') patch.notes = body.notes;
-    const updated = updateUser(id, patch);
-    if (!updated) return res.status(404).json({ error: 'not_found' });
-    res.json({ user: getUserById(id) });
+    if (id.startsWith('visitor_')) {
+      return res.status(400).json({ error: 'cannot_edit_visitor', message: 'Действия доступны только для зарегистрированных пользователей' });
+    }
+    const updated = updateUser(id, req.body);
+    if (!updated) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден в базе' });
+    res.json({ user: updated });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'server_error' });
+    console.error('[PATCH /api/users/:id]', e);
+    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
   }
 });
 
@@ -381,16 +378,19 @@ app.post('/api/users/:id/bonus', (req, res) => {
     if (!adminUserId || !isAdmin(adminUserId)) {
       return res.status(403).json({ error: 'forbidden' });
     }
+    if (req.params.id.startsWith('visitor_')) {
+      return res.status(400).json({ error: 'cannot_edit_visitor', message: 'Бонус доступен только зарегистрированным' });
+    }
     const amount = Number(req.body.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
       return res.status(400).json({ error: 'invalid_amount' });
     }
     const user = addBonusToUser(req.params.id, amount);
-    if (!user) return res.status(404).json({ error: 'not_found' });
+    if (!user) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден' });
     res.json({ user });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'server_error' });
+    console.error('[POST /api/users/:id/bonus]', e);
+    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
   }
 });
 
@@ -400,12 +400,15 @@ app.post('/api/users/:id/reset-balance', (req, res) => {
     if (!adminUserId || !isAdmin(adminUserId)) {
       return res.status(403).json({ error: 'forbidden' });
     }
+    if (req.params.id.startsWith('visitor_')) {
+      return res.status(400).json({ error: 'cannot_edit_visitor', message: 'Сброс доступен только зарегистрированным' });
+    }
     const user = resetUserBalance(req.params.id);
-    if (!user) return res.status(404).json({ error: 'not_found' });
+    if (!user) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден' });
     res.json({ user });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'server_error' });
+    console.error('[POST /api/users/:id/reset-balance]', e);
+    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
   }
 });
 

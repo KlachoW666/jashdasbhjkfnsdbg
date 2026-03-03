@@ -57,8 +57,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                     addAuditEntry({ adminId: adminUserId, action: 'Изменение баланса', details: `${selectedUser.name}: $${selectedUser.balance} → $${val}` });
                     await refetchAndRefresh(selectedUser.id);
                     if (showAlert) showAlert(`Баланс обновлен до $${val.toFixed(2)}`);
-                } catch {
-                    if (showAlert) showAlert('Ошибка сети');
+                } catch (e: any) {
+                    if (showAlert) showAlert(e?.message || 'Ошибка сети');
                 }
             }
         }
@@ -76,8 +76,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                     addAuditEntry({ adminId: adminUserId, action: 'Бонус', details: `${selectedUser.name}: +$${val}` });
                     await refetchAndRefresh(selectedUser.id);
                     if (showAlert) showAlert(`Бонус +$${val.toFixed(2)} начислен`);
-                } catch {
-                    if (showAlert) showAlert('Ошибка сети');
+                } catch (e: any) {
+                    if (showAlert) showAlert(e?.message || 'Ошибка сети');
                 }
             }
         }
@@ -92,8 +92,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
             addAuditEntry({ adminId: adminUserId, action: `${action} пользователя`, details: `${selectedUser.name} (${selectedUser.id})` });
             await refetchAndRefresh(selectedUser.id);
             if (showAlert) showAlert(`${selectedUser.name} ${selectedUser.isBanned ? 'разбанен' : 'забанен'}`);
-        } catch {
-            if (showAlert) showAlert('Ошибка сети');
+        } catch (e: any) {
+            if (showAlert) showAlert(e?.message || 'Ошибка сети');
         }
     };
 
@@ -104,8 +104,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
             await updateUserApi(selectedUser.id, adminUserId, { vipStatus: !selectedUser.vipStatus });
             addAuditEntry({ adminId: adminUserId, action: 'VIP статус', details: `${selectedUser.name}: ${selectedUser.vipStatus ? 'снят' : 'установлен'}` });
             await refetchAndRefresh(selectedUser.id);
-        } catch {
-            if (showAlert) showAlert('Ошибка сети');
+        } catch (e: any) {
+            if (showAlert) showAlert(e?.message || 'Ошибка сети');
         }
     };
 
@@ -117,8 +117,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                 await updateUserApi(selectedUser.id, adminUserId, { notes: input });
                 addAuditEntry({ adminId: adminUserId, action: 'Заметка', details: `${selectedUser.name}: "${input.slice(0, 50)}"` });
                 await refetchAndRefresh(selectedUser.id);
-            } catch {
-                if (showAlert) showAlert('Ошибка сети');
+            } catch (e: any) {
+                if (showAlert) showAlert(e?.message || 'Ошибка сети');
             }
         }
     };
@@ -132,8 +132,8 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                 addAuditEntry({ adminId: adminUserId, action: 'Сброс баланса', details: `${selectedUser.name}: $${selectedUser.balance} → $0` });
                 await refetchAndRefresh(selectedUser.id);
                 if (showAlert) showAlert('Баланс обнулен');
-            } catch {
-                if (showAlert) showAlert('Ошибка сети');
+            } catch (e: any) {
+                if (showAlert) showAlert(e?.message || 'Ошибка сети');
             }
         }
     };
@@ -200,27 +200,27 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                             {loading ? (
                                 <div className="text-center text-[#8B949E] py-10 text-sm">Загрузка...</div>
                             ) : (
-                            filteredUsers.map(user => (
-                                <div
-                                    key={user.id}
-                                    onClick={() => setSelectedUser(user)}
-                                    className="bg-[#161B22] border border-[#30363D] hover:border-[#00D26A]/50 rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
-                                >
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-white truncate">{user.name}</span>
-                                            {user.registered === false && <span className="text-[10px] bg-[#8B949E]/30 text-[#8B949E] px-2 py-0.5 rounded-md font-bold shrink-0">Не зарег.</span>}
-                                            {user.vipStatus && <Star size={12} className="text-[#F0883E] shrink-0" />}
-                                            {user.isBanned && <span className="text-[10px] bg-[#FF4444]/20 text-[#FF4444] px-2 py-0.5 rounded-md font-bold uppercase shrink-0">Ban</span>}
+                                filteredUsers.map(user => (
+                                    <div
+                                        key={user.id}
+                                        onClick={() => setSelectedUser(user)}
+                                        className="bg-[#161B22] border border-[#30363D] hover:border-[#00D26A]/50 rounded-xl p-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all"
+                                    >
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-white truncate">{user.name}</span>
+                                                {user.registered === false && <span className="text-[10px] bg-[#8B949E]/30 text-[#8B949E] px-2 py-0.5 rounded-md font-bold shrink-0">Не зарег.</span>}
+                                                {user.vipStatus && <Star size={12} className="text-[#F0883E] shrink-0" />}
+                                                {user.isBanned && <span className="text-[10px] bg-[#FF4444]/20 text-[#FF4444] px-2 py-0.5 rounded-md font-bold uppercase shrink-0">Ban</span>}
+                                            </div>
+                                            <span className="text-xs text-[#8B949E] font-mono">{user.id}</span>
                                         </div>
-                                        <span className="text-xs text-[#8B949E] font-mono">{user.id}</span>
+                                        <div className="text-right shrink-0 ml-3">
+                                            <div className="text-sm font-bold text-[#00D26A]">${user.balance.toFixed(2)}</div>
+                                            <div className="text-[10px] text-[#8B949E]">{user.lastActive}</div>
+                                        </div>
                                     </div>
-                                    <div className="text-right shrink-0 ml-3">
-                                        <div className="text-sm font-bold text-[#00D26A]">${user.balance.toFixed(2)}</div>
-                                        <div className="text-[10px] text-[#8B949E]">{user.lastActive}</div>
-                                    </div>
-                                </div>
-                            ))
+                                ))
                             )}
                             {!loading && filteredUsers.length === 0 && (
                                 <div className="text-center text-[#8B949E] py-10 text-sm">Пользователи не найдены</div>

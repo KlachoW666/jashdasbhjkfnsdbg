@@ -12,12 +12,13 @@ echo "[1/6] Updating system..."
 apt-get update && apt-get upgrade -y
 apt-get install -y curl git nginx certbot python3-certbot-nginx build-essential ufw
 
-# 2. Setup UFW Firewall
+# 2. Setup UFW Firewall (ports 80, 443 must be open for web access)
 echo "[2/6] Configuring Firewall..."
 ufw allow ssh
-ufw allow http
-ufw allow https
+ufw allow 80/tcp
+ufw allow 443/tcp
 ufw --force enable
+echo "UFW status: $(ufw status | head -5)"
 
 # 3. Install Node.js & npm (via NodeSource 20.x)
 echo "[3/6] Installing Node.js..."
@@ -25,57 +26,118 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 npm install -g pm2
 
-# 4. Clone Repository & Install Dependencies
+# 4. Clone or update repository
 echo "[4/6] Setting up Application..."
 APP_DIR="/var/www/miniapp"
 REPO_URL="https://github.com/KlachoW666/afdsghjklsgdhy65.git"
 
-if [ -d "$APP_DIR" ]; then
-    rm -rf "$APP_DIR"
+if [ -d "$APP_DIR/.git" ]; then
+    echo "Updating existing repo (database and settings are preserved)..."
+    cd "$APP_DIR"
+    git fetch origin
+    git reset --hard origin/main
+    cd - >/dev/null
+else
+    if [ -d "$APP_DIR" ]; then
+        echo "Removing non-git directory..."
+        rm -rf "$APP_DIR"
+    fi
+    git clone "$REPO_URL" "$APP_DIR"
 fi
 
-git clone "$REPO_URL" "$APP_DIR"
+# --- Frontend ---
+echo "[4a/6] Building Frontend..."
 cd "$APP_DIR/promt/frontend"
-
-# Build the frontend application
-echo "Installing NPM packages..."
 npm install
 echo "Building for production..."
 npm run build
 
-# 5. Configure Nginx
+# --- Backend API (required for auth, wallet, exchange) ---
+echo "[4b/6] Setting up Backend API..."
+cd "$APP_DIR/promt/backend"
+npm install
+if pm2 describe zyphex-api >/dev/null 2>&1; then
+    echo "Restarting backend (zyphex-api)..."
+    pm2 restart zyphex-api
+else
+    echo "Starting backend (zyphex-api)..."
+    pm2 start server.js --name zyphex-api
+fi
+pm2 save 2>/dev/null || true
+pm2 startup 2>/dev/null || true
+
+# 5. Configure Nginx (HTTP + HTTPS so Telegram Mini App can open the URL)
 echo "[5/6] Configuring Nginx..."
-DOMAIN="your-domain.com" # CHANGE THIS LATER
+SERVER_IP="${SERVER_IP:-$(curl -s --max-time 3 ifconfig.me 2>/dev/null || echo '188.127.230.83')}"
+SSL_DIR="/etc/nginx/ssl/miniapp"
+mkdir -p "$SSL_DIR"
+
+if [ ! -f "$SSL_DIR/cert.pem" ]; then
+    echo "Generating self-signed SSL certificate for $SERVER_IP..."
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
+        -keyout "$SSL_DIR/key.pem" -out "$SSL_DIR/cert.pem" \
+        -subj "/CN=$SERVER_IP" \
+        -addext "subjectAltName=IP:$SERVER_IP"
+    chmod 600 "$SSL_DIR/key.pem"
+fi
 
 NGINX_CONF="/etc/nginx/sites-available/miniapp"
-cat > $NGINX_CONF << 'EOF'
+cat > "$NGINX_CONF" << NGINXEOF
 server {
     listen 80;
+    listen [::]:80;
     server_name _;
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name _;
+
+    ssl_certificate     $SSL_DIR/cert.pem;
+    ssl_certificate_key $SSL_DIR/key.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
 
     root /var/www/miniapp/promt/frontend/dist;
     index index.html;
 
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
     location / {
-        try_files $uri $uri/ /index.html;
+        try_files \$uri \$uri/ /index.html;
     }
 }
-EOF
+NGINXEOF
 
 ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
+systemctl enable nginx 2>/dev/null || true
 
 # 6. Final Instructions
 echo "======================================"
 echo "          Setup Complete!             "
 echo "======================================"
 echo ""
-echo "Next steps:"
-echo "1. Point your domain A record to this server's IP address."
-echo "2. Edit /etc/nginx/sites-available/miniapp and replace '_' with your domain name."
-echo "3. Run SSL setup: certbot --nginx -d your-domain.com"
-echo "4. Reload nginx: systemctl reload nginx"
+echo "Open the app in Telegram (BotFather -> Mini App URL):"
+echo "  https://$SERVER_IP"
 echo ""
-echo "Your app is currently being served on HTTP (Port 80) from /var/www/miniapp/promt/frontend/dist"
+echo "Frontend:  Nginx serves from $APP_DIR/promt/frontend/dist (HTTP -> redirect to HTTPS)"
+echo "Backend:   pm2 (port 3000), Nginx proxies /api/ to it."
+echo "Database:  $APP_DIR/promt/backend/data/zyphex.db (preserved on update)"
+echo ""
+echo "If connection refused: 1) Open ports 80,443 in hosting panel firewall  2) pm2 list  3) systemctl status nginx"
+echo "Check:     pm2 list && pm2 logs zyphex-api --lines 5"
+echo ""
+echo "Optional (domain + Let's Encrypt): point A-record to this IP, then:"
+echo "  certbot --nginx -d your-domain.com && systemctl reload nginx"
 echo "======================================"

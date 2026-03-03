@@ -52,16 +52,17 @@ npm install
 echo "Building for production..."
 npm run build
 
-# --- Backend API (required for auth, wallet, exchange) ---
-echo "[4b/6] Setting up Backend API..."
+# --- Backend API (required for auth, wallet, exchange) — port 3001 to avoid conflict with other app on 3000 ---
+BACKEND_PORT="${BACKEND_PORT:-3001}"
+echo "[4b/6] Setting up Backend API (port $BACKEND_PORT)..."
 cd "$APP_DIR/promt/backend"
 npm install
 if pm2 describe zyphex-api >/dev/null 2>&1; then
     echo "Restarting backend (zyphex-api)..."
     pm2 delete zyphex-api 2>/dev/null || true
 fi
-echo "Starting backend (zyphex-api) with cwd=$APP_DIR/promt/backend..."
-pm2 start server.js --name zyphex-api --cwd "$APP_DIR/promt/backend"
+echo "Starting backend (zyphex-api) on port $BACKEND_PORT..."
+PORT=$BACKEND_PORT pm2 start server.js --name zyphex-api --cwd "$APP_DIR/promt/backend"
 pm2 save 2>/dev/null || true
 pm2 startup 2>/dev/null || true
 
@@ -80,6 +81,7 @@ if [ ! -f "$SSL_DIR/cert.pem" ]; then
     chmod 600 "$SSL_DIR/key.pem"
 fi
 
+BACKEND_PORT="${BACKEND_PORT:-3001}"
 NGINX_CONF="/etc/nginx/sites-available/miniapp"
 cat > "$NGINX_CONF" << NGINXEOF
 server {
@@ -103,7 +105,7 @@ server {
     index index.html;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:3000;
+        proxy_pass http://127.0.0.1:${BACKEND_PORT};
         proxy_http_version 1.1;
         proxy_connect_timeout 10s;
         proxy_read_timeout 30s;

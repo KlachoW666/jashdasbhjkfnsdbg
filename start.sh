@@ -6,6 +6,8 @@ set -e
 
 APP_DIR="/var/www/miniapp"
 REPO_URL="https://github.com/KlachoW666/afdsghjklsgdhy65.git"
+# Port for Mini App API (3001 to avoid conflict with other app on 3000)
+BACKEND_PORT="${BACKEND_PORT:-3001}"
 
 echo "======================================"
 echo "    Mini App — start/update           "
@@ -49,18 +51,22 @@ BACKEND_DIR="$APP_DIR/promt/backend"
 if pm2 describe zyphex-api >/dev/null 2>&1; then
     pm2 delete zyphex-api 2>/dev/null || true
 fi
-pm2 start server.js --name zyphex-api --cwd "$BACKEND_DIR"
-echo "Backend started (cwd=$BACKEND_DIR)."
+PORT=$BACKEND_PORT pm2 start server.js --name zyphex-api --cwd "$BACKEND_DIR"
+echo "Backend started on port $BACKEND_PORT (cwd=$BACKEND_DIR)."
 pm2 save 2>/dev/null || true
 sleep 2
-if curl -sf --max-time 5 "http://127.0.0.1:3000/api/health" >/dev/null 2>&1; then
-    echo "  API health check OK."
+if curl -sf --max-time 5 "http://127.0.0.1:$BACKEND_PORT/api/health" >/dev/null 2>&1; then
+    echo "  API health check OK (port $BACKEND_PORT)."
 else
     echo "  WARNING: API health check failed. Run: pm2 logs zyphex-api"
 fi
 
-# 4. Nginx
+# 4. Nginx (ensure proxy points to our backend port)
 echo "[4/4] Nginx..."
+NGINX_CONF="/etc/nginx/sites-available/miniapp"
+if [ -f "$NGINX_CONF" ]; then
+    sed -i "s|proxy_pass http://127.0.0.1:[0-9]*;|proxy_pass http://127.0.0.1:${BACKEND_PORT};|" "$NGINX_CONF"
+fi
 if command -v nginx >/dev/null 2>&1; then
     nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || systemctl start nginx 2>/dev/null || true
     echo "Nginx reloaded/started."
@@ -72,6 +78,6 @@ echo ""
 echo "======================================"
 echo "    Done. App should be running.      "
 echo "======================================"
-echo "  Backend:  pm2 list && pm2 logs zyphex-api"
-echo "  API test: curl -s http://127.0.0.1:3000/api/zyphex/rate"
+echo "  Backend:  pm2 list && pm2 logs zyphex-api (port $BACKEND_PORT)"
+echo "  API test: curl -s http://127.0.0.1:$BACKEND_PORT/api/zyphex/rate"
 echo "======================================"

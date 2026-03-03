@@ -194,6 +194,20 @@ app.get('/api/wallet/withdraw-limits', (req, res) => {
   }
 });
 
+// Save current balance from frontend to DB (called periodically by trade engine)
+app.post('/api/wallet/sync-balance', (req, res) => {
+  try {
+    const { userId, totalUsd } = req.body;
+    if (!userId || totalUsd == null) return res.status(400).json({ error: 'userId and totalUsd required' });
+    const updated = updateUser(userId, { balance: totalUsd });
+    if (!updated) return res.status(404).json({ error: 'user_not_found' });
+    res.json({ ok: true, balance: updated.balance });
+  } catch (e) {
+    console.error('[POST /api/wallet/sync-balance]', e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
 app.post('/api/wallet/withdraw', (req, res) => {
   try {
     const { userId, network, amount, address } = req.body;

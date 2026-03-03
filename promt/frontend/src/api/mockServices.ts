@@ -80,6 +80,7 @@ export const MockAPI = {
     },
 
     // --- WALLET ---
+    /** Fetch balance from backend — only overwrite if server has MORE (e.g. admin deposited) */
     async fetchBalance(): Promise<void> {
         const userId = useUserStore.getState().userId;
         if (!userId) return;
@@ -89,9 +90,28 @@ export const MockAPI = {
                 balanceByNetwork: Record<Network, number>;
             }>(`/api/wallet/balance?userId=${encodeURIComponent(userId)}`);
             const wallet = useWalletStore.getState();
-            wallet.setBalances(res.totalUsd, res.balanceByNetwork);
+            // Only replace if server balance is more than local (admin deposit case)
+            // Otherwise keep local balance (trade profits accumulated locally)
+            if (res.totalUsd > wallet.totalUsd) {
+                wallet.setBalances(res.totalUsd, res.balanceByNetwork);
+            }
         } catch {
             // Silently fail — local store keeps previous values
+        }
+    },
+
+    /** Save current local balance to backend DB for persistence */
+    async syncBalanceToServer(): Promise<void> {
+        const userId = useUserStore.getState().userId;
+        if (!userId) return;
+        const wallet = useWalletStore.getState();
+        try {
+            await api.post('/api/wallet/sync-balance', {
+                userId,
+                totalUsd: wallet.totalUsd,
+            });
+        } catch {
+            // Silent — will retry on next sync
         }
     },
 

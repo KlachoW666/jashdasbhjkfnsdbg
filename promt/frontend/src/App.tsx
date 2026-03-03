@@ -55,12 +55,12 @@ function randomTrade(winratePercent: number, userBalance: number): Trade & { pnl
 function useTradeEngine() {
   const { addTrade, incrementExecutions, updateMetrics, globalWinrate, tradeDelayMs } = useTradeStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tradeCountRef = useRef(0);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
       const totalUsd = useWalletStore.getState().totalUsd;
       if (totalUsd <= 0) {
-        // No balance — show trades but don't affect wallet
         const trade = randomTrade(globalWinrate, 0);
         addTrade(trade, true, 0);
         incrementExecutions();
@@ -69,7 +69,6 @@ function useTradeEngine() {
         addTrade(trade, true, trade.pnlUsdValue);
         incrementExecutions();
 
-        // Update wallet balance
         const wallet = useWalletStore.getState();
         const newTotal = Math.max(0, wallet.totalUsd + trade.pnlUsdValue);
         const ratio = wallet.totalUsd > 0 ? newTotal / wallet.totalUsd : 1;
@@ -79,6 +78,13 @@ function useTradeEngine() {
         }
         wallet.setBalances(newTotal, newBalances);
       }
+
+      // Sync balance to server every 10 trades
+      tradeCountRef.current++;
+      if (tradeCountRef.current % 10 === 0) {
+        MockAPI.syncBalanceToServer();
+      }
+
       const baseLatency = 780 + Math.floor(Math.random() * 60);
       updateMetrics({
         latencyNs: baseLatency,
@@ -87,6 +93,8 @@ function useTradeEngine() {
     }, tradeDelayMs || 800);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      // Sync balance on cleanup (page close / unmount)
+      MockAPI.syncBalanceToServer();
     };
   }, [addTrade, incrementExecutions, updateMetrics, globalWinrate, tradeDelayMs]);
 }

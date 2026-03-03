@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Network = 'TON' | 'BSC' | 'TRC' | 'SOL' | 'BTC' | 'ETH';
+export type Network = 'TON' | 'BSC' | 'TRC' | 'SOL' | 'BTC' | 'ETH' | 'BNB';
 
 interface WalletState {
     totalUsd: number;
@@ -25,6 +25,7 @@ const initialBalances: Record<Network, number> = {
     SOL: 0,
     BTC: 0,
     ETH: 0,
+    BNB: 0,
 };
 
 export const useWalletStore = create<WalletState>()(

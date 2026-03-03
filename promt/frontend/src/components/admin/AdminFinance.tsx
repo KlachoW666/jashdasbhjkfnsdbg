@@ -125,7 +125,7 @@ export default function AdminFinance() {
                     <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-4">
                         <h4 className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-3">Активные сети</h4>
                         <div className="flex flex-wrap gap-2">
-                            {['TON', 'BSC', 'TRC', 'SOL', 'BTC', 'ETH'].map(net => {
+                            {['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'].map(net => {
                                 const enabled = settings.enabledNetworks.includes(net);
                                 return (
                                     <button

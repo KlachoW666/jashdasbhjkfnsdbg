@@ -159,6 +159,7 @@ function generateDepositAddress(userId, network) {
     case 'TRC': return process.env.ADMIN_WALLET_TRC || `T${seed.slice(0, 33)}`;
     case 'SOL': return process.env.ADMIN_WALLET_SOL || seed.slice(0, 44);
     case 'BTC': return process.env.ADMIN_WALLET_BTC || `bc1q${seed.slice(0, 38)}`;
+    case 'BNB': return process.env.ADMIN_WALLET_BNB || `0x${seed.slice(0, 40)}`;
     case 'ETH': return process.env.ADMIN_WALLET_ETH || `0x${seed.slice(0, 40)}`;
     default: return `0x${seed.slice(0, 40)}`;
   }
@@ -206,7 +207,7 @@ export function registerUser({ telegramId, username, firstName, pin, referredBy 
   `).run(id, String(telegramId), username || '', firstName || '', refCode, referredBy || null, pinHash);
 
   // Create wallets for all networks
-  const networks = ['TON', 'BSC', 'TRC', 'SOL', 'BTC', 'ETH'];
+  const networks = ['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'];
   const insertWallet = db.prepare(`
     INSERT OR IGNORE INTO wallets (user_id, network, address, balance_usdt)
     VALUES (?, ?, ?, 0)
@@ -386,7 +387,7 @@ export function getReferralInfo(userId) {
 
 export function getWalletBalances(userId) {
   const rows = db.prepare('SELECT network, balance_usdt, address FROM wallets WHERE user_id = ?').all(userId);
-  const balances = { TON: 0, BSC: 0, TRC: 0, SOL: 0, BTC: 0, ETH: 0 };
+  const balances = { TON: 0, BSC: 0, BNB: 0, TRC: 0, SOL: 0, BTC: 0, ETH: 0 };
   const addresses = {};
   let walletTotal = 0;
   for (const r of rows) {

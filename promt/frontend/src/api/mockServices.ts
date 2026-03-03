@@ -44,7 +44,7 @@ export const MockAPI = {
             useUserStore.getState().setAuth(true, pin);
             const wallet = useWalletStore.getState();
             if (wallet.totalUsd === 0 && res.user.balanceUsdt != null) {
-                wallet.setBalances(res.user.balanceUsdt, { TON: 0, BSC: 0, TRC: 0, SOL: 0, BTC: 0, ETH: 0 });
+                wallet.setBalances(res.user.balanceUsdt, { TON: 0, BSC: 0, TRC: 0, SOL: 0, BTC: 0, ETH: 0, BNB: 0 });
             }
             return true;
         } catch (e: any) {
@@ -65,7 +65,7 @@ export const MockAPI = {
             const wallet = useWalletStore.getState();
             if (wallet.totalUsd === 0 && res.user.balanceUsdt != null) {
                 const b = res.user.balanceUsdt;
-                wallet.setBalances(b, { TON: b / 3, BSC: b / 3, TRC: b / 3, SOL: 0, BTC: 0, ETH: 0 });
+                wallet.setBalances(b, { TON: b / 3, BSC: b / 3, TRC: b / 3, SOL: 0, BTC: 0, ETH: 0, BNB: 0 });
             }
             return true;
         } catch (e: any) {

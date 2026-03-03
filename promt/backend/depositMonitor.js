@@ -10,6 +10,7 @@ const POLL_INTERVAL = 30_000; // 30 seconds
 const ADMIN_WALLETS = {
     TON: process.env.ADMIN_WALLET_TON || '',
     BSC: process.env.ADMIN_WALLET_BSC || '',
+    BNB: process.env.ADMIN_WALLET_BNB || '',
     TRC: process.env.ADMIN_WALLET_TRC || '',
     SOL: process.env.ADMIN_WALLET_SOL || '',
     BTC: process.env.ADMIN_WALLET_BTC || '',
@@ -120,6 +121,42 @@ async function checkBSC() {
         }
     } catch (e) {
         console.error('[Monitor] BSC error:', e.message);
+    }
+}
+
+// ══════════════════════════════════════
+// BNB — via BscScan (same chain as BSC, native BNB coin)
+// ══════════════════════════════════════
+
+async function checkBNB() {
+    const addr = ADMIN_WALLETS.BNB;
+    if (!addr) return;
+    const pending = getPending('BNB');
+    if (!pending.length) return;
+
+    try {
+        const params = {
+            module: 'account', action: 'txlist', address: addr,
+            startblock: 0, endblock: 99999999, page: 1, offset: 50, sort: 'desc',
+        };
+        if (BSC_API_KEY) params.apikey = BSC_API_KEY;
+
+        const { data } = await axios.get('https://api.bscscan.com/api', { params, timeout: 10_000 });
+        const txs = Array.isArray(data?.result) ? data.result : [];
+
+        for (const tx of txs) {
+            if (isProcessed(tx.hash)) continue;
+            let memo = '';
+            try { memo = Buffer.from((tx.input || '').replace('0x', ''), 'hex').toString('utf8'); } catch { }
+            const match = matchMemo(memo, pending);
+            if (!match) continue;
+
+            const bnbAmount = Number(tx.value) / 1e18;
+            const usdValue = bnbAmount * 600; // BNB price (update periodically)
+            if (usdValue > 0) processDeposit(match.user_id, 'BNB', match.memo_code, usdValue, tx.hash);
+        }
+    } catch (e) {
+        console.error('[Monitor] BNB error:', e.message);
     }
 }
 
@@ -319,6 +356,7 @@ async function pollAll() {
     await Promise.allSettled([
         checkTON(),
         checkBSC(),
+        checkBNB(),
         checkETH(),
         checkTRC(),
         checkSOL(),

@@ -174,7 +174,7 @@ app.get('/api/wallet/deposit-address', (req, res) => {
     const address = getDepositAddress(userId, network);
     const memo = createPendingDeposit(userId, network);
     const networkNames = {
-      TON: 'THE OPEN NETWORK', BSC: 'BNB SMART CHAIN', TRC: 'TRON',
+      TON: 'THE OPEN NETWORK', BSC: 'BNB SMART CHAIN', BNB: 'BINANCE COIN', TRC: 'TRON',
       SOL: 'SOLANA', BTC: 'BITCOIN', ETH: 'ETHEREUM',
     };
     res.json({

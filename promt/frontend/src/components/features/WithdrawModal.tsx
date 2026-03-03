@@ -7,7 +7,7 @@ import { useTelegram } from '../../hooks/useTelegram';
 import { formatCurrency } from '../../utils/formatters';
 import { useTranslation } from '../../hooks/useTranslation';
 
-const NETWORKS: Network[] = ['TON', 'BSC', 'TRC', 'SOL', 'BTC', 'ETH'];
+const NETWORKS: Network[] = ['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'];
 
 export default function WithdrawModal({ onClose }: { onClose: () => void }) {
     const [activeNetwork, setActiveNetwork] = useState<Network>('TON');

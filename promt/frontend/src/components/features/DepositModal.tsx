@@ -5,7 +5,7 @@ import { MockAPI } from '../../api/mockServices';
 import { useTelegram } from '../../hooks/useTelegram';
 import { useTranslation } from '../../hooks/useTranslation';
 
-const NETWORKS: Network[] = ['TON', 'BSC', 'TRC', 'SOL', 'BTC', 'ETH'];
+const NETWORKS: Network[] = ['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'];
 
 export default function DepositModal({ onClose }: { onClose: () => void }) {
     const [activeNetwork, setActiveNetwork] = useState<Network>('TON');

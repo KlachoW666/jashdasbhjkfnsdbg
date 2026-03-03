@@ -106,7 +106,7 @@ const ALL_PAIRS = [
     'PEPE', 'SHIB', 'FTM', 'GRT', 'ALGO', 'VET', 'ICP', 'MANA', 'SAND', 'AAVE',
 ];
 
-const ALL_NETWORKS = ['TON', 'BSC', 'TRC', 'SOL', 'BTC', 'ETH'];
+const ALL_NETWORKS = ['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'];
 
 const mockUsers: MockAppUser[] = [];
 
@@ -146,58 +146,58 @@ export const useAdminStore = create<AdminState>()(
             // ---- Users ----
             setUsers: (users) => set({ users }),
             updateUserBalance: (id, newBalance) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, balance: newBalance } : u)
-    })),
-    toggleBanUser: (id) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, isBanned: !u.isBanned } : u)
-    })),
-    addBonusToUser: (id, bonus) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, balance: u.balance + bonus } : u)
-    })),
-    updateUserNotes: (id, notes) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, notes } : u)
-    })),
-    toggleVipStatus: (id) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, vipStatus: !u.vipStatus } : u)
-    })),
-    resetUserBalance: (id) => set((s) => ({
-        users: s.users.map(u => u.id === id ? { ...u, balance: 0 } : u)
-    })),
+                users: s.users.map(u => u.id === id ? { ...u, balance: newBalance } : u)
+            })),
+            toggleBanUser: (id) => set((s) => ({
+                users: s.users.map(u => u.id === id ? { ...u, isBanned: !u.isBanned } : u)
+            })),
+            addBonusToUser: (id, bonus) => set((s) => ({
+                users: s.users.map(u => u.id === id ? { ...u, balance: u.balance + bonus } : u)
+            })),
+            updateUserNotes: (id, notes) => set((s) => ({
+                users: s.users.map(u => u.id === id ? { ...u, notes } : u)
+            })),
+            toggleVipStatus: (id) => set((s) => ({
+                users: s.users.map(u => u.id === id ? { ...u, vipStatus: !u.vipStatus } : u)
+            })),
+            resetUserBalance: (id) => set((s) => ({
+                users: s.users.map(u => u.id === id ? { ...u, balance: 0 } : u)
+            })),
 
-    // ---- Transactions ----
-    addTransaction: (tx) => set((s) => ({
-        transactions: [{ ...tx, id: `tx_${uid()}` }, ...s.transactions]
-    })),
-    updateTransactionStatus: (id, status) => set((s) => ({
-        transactions: s.transactions.map(t => t.id === id ? { ...t, status } : t)
-    })),
+            // ---- Transactions ----
+            addTransaction: (tx) => set((s) => ({
+                transactions: [{ ...tx, id: `tx_${uid()}` }, ...s.transactions]
+            })),
+            updateTransactionStatus: (id, status) => set((s) => ({
+                transactions: s.transactions.map(t => t.id === id ? { ...t, status } : t)
+            })),
 
-    // ---- Audit ----
-    addAuditEntry: (entry) => set((s) => ({
-        auditLog: [{ ...entry, id: `a_${uid()}`, timestamp: new Date().toLocaleString('ru-RU') }, ...s.auditLog]
-    })),
+            // ---- Audit ----
+            addAuditEntry: (entry) => set((s) => ({
+                auditLog: [{ ...entry, id: `a_${uid()}`, timestamp: new Date().toLocaleString('ru-RU') }, ...s.auditLog]
+            })),
 
-    // ---- Broadcast ----
-    addBroadcast: (msg) => set((s) => ({
-        broadcasts: [{ ...msg, id: `b_${uid()}`, sentAt: new Date().toLocaleString('ru-RU') }, ...s.broadcasts]
-    })),
+            // ---- Broadcast ----
+            addBroadcast: (msg) => set((s) => ({
+                broadcasts: [{ ...msg, id: `b_${uid()}`, sentAt: new Date().toLocaleString('ru-RU') }, ...s.broadcasts]
+            })),
 
-    // ---- Settings ----
-    updateSettings: (patch) => set((s) => ({
-        settings: { ...s.settings, ...patch }
-    })),
-    togglePair: (pair) => set((s) => {
-        const pairs = s.settings.enabledPairs.includes(pair)
-            ? s.settings.enabledPairs.filter(p => p !== pair)
-            : [...s.settings.enabledPairs, pair];
-        return { settings: { ...s.settings, enabledPairs: pairs } };
-    }),
-    toggleNetwork: (network) => set((s) => {
-        const nets = s.settings.enabledNetworks.includes(network)
-            ? s.settings.enabledNetworks.filter(n => n !== network)
-            : [...s.settings.enabledNetworks, network];
-        return { settings: { ...s.settings, enabledNetworks: nets } };
-    }),
+            // ---- Settings ----
+            updateSettings: (patch) => set((s) => ({
+                settings: { ...s.settings, ...patch }
+            })),
+            togglePair: (pair) => set((s) => {
+                const pairs = s.settings.enabledPairs.includes(pair)
+                    ? s.settings.enabledPairs.filter(p => p !== pair)
+                    : [...s.settings.enabledPairs, pair];
+                return { settings: { ...s.settings, enabledPairs: pairs } };
+            }),
+            toggleNetwork: (network) => set((s) => {
+                const nets = s.settings.enabledNetworks.includes(network)
+                    ? s.settings.enabledNetworks.filter(n => n !== network)
+                    : [...s.settings.enabledNetworks, network];
+                return { settings: { ...s.settings, enabledNetworks: nets } };
+            }),
         }),
         {
             name: 'zyphex-admin-storage',

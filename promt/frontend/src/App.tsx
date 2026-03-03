@@ -26,16 +26,41 @@ const LIVE_PAIRS = ['BONK', 'FIL', 'ETH', 'KAS', 'ROSE', 'SUI', 'VET', 'ALGO', '
 const uid = () => Math.random().toString(36).slice(2, 10);
 const formatTime = () => new Date().toTimeString().slice(0, 8);
 
-function randomTrade(winratePercent: number, userBalance: number): Trade & { pnlUsdValue: number } {
+function randomTrade(winratePercent: number, userBalance: number, tradeDelayMs: number = 800): Trade & { pnlUsdValue: number } {
   const pair = LIVE_PAIRS[Math.floor(Math.random() * LIVE_PAIRS.length)];
   const isProfit = Math.random() * 100 < winratePercent;
   const pnlAbs = Math.random() * 2 + 0.01;
 
-  // Base trade amount: 0.1–0.5% of user's balance
-  const baseAmount = Math.max(userBalance, 100) * (0.001 + Math.random() * 0.004);
+  // Calculate mathematically correct PnL values to target exactly 5% daily profit
+  const dailyTargetRatio = 0.05;
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const tradesPerDay = Math.max(1, msPerDay / Math.max(1, tradeDelayMs));
+  const expectedValuePerTrade = (userBalance * dailyTargetRatio) / tradesPerDay;
 
-  // Green: +100% of trade amount, Red: -100% of trade amount
-  const pnlUsdValue = isProfit ? baseAmount : -baseAmount;
+  const pWin = winratePercent / 100;
+  const pLoss = 1 - pWin;
+
+  let winAmount = 0;
+  let lossAmount = 0;
+
+  // Base visual trade amount: 0.1–0.5% of user's balance
+  const baseVisualAmount = Math.max(userBalance, 100) * (0.001 + Math.random() * 0.004);
+
+  if (pWin === 1) {
+    winAmount = expectedValuePerTrade;
+  } else if (pWin === 0) {
+    lossAmount = baseVisualAmount;
+  } else {
+    winAmount = baseVisualAmount;
+    lossAmount = (pWin * winAmount - expectedValuePerTrade) / pLoss;
+
+    if (lossAmount < 0) {
+      lossAmount = 0;
+      winAmount = expectedValuePerTrade / pWin;
+    }
+  }
+
+  const pnlUsdValue = isProfit ? winAmount : -lossAmount;
 
   const pnlUsdAbs = Math.abs(pnlUsdValue);
   const pnl = isProfit ? `+${pnlAbs.toFixed(4)}` : `-${pnlAbs.toFixed(4)}`;
@@ -61,11 +86,11 @@ function useTradeEngine() {
     intervalRef.current = setInterval(() => {
       const totalUsd = useWalletStore.getState().totalUsd;
       if (totalUsd <= 0) {
-        const trade = randomTrade(globalWinrate, 0);
+        const trade = randomTrade(globalWinrate, 0, tradeDelayMs);
         addTrade(trade, true, 0);
         incrementExecutions();
       } else {
-        const trade = randomTrade(globalWinrate, totalUsd);
+        const trade = randomTrade(globalWinrate, totalUsd, tradeDelayMs);
         addTrade(trade, true, trade.pnlUsdValue);
         incrementExecutions();
 

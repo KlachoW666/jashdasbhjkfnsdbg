@@ -318,6 +318,7 @@ export function getUserById(id) {
     botMode: row.bot_mode || 'balanced',
     notes: row.notes || '',
     vipStatus: !!row.is_vip,
+    registered: true,
   };
 }
 

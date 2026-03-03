@@ -357,18 +357,26 @@ app.patch('/api/users/:id', (req, res) => {
   try {
     const adminUserId = req.query.userId || req.headers['x-user-id'];
     if (!adminUserId || !isAdmin(adminUserId)) {
-      return res.status(403).json({ error: 'forbidden' });
+      return res.status(403).json({ error: 'forbidden', message: 'Нет прав администратора' });
     }
     const { id } = req.params;
     if (id.startsWith('visitor_')) {
       return res.status(400).json({ error: 'cannot_edit_visitor', message: 'Действия доступны только для зарегистрированных пользователей' });
     }
-    const updated = updateUser(id, req.body);
-    if (!updated) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден в базе' });
+    // Only extract known fields to prevent unexpected data
+    const body = req.body || {};
+    const safePatch = {};
+    if (typeof body.balance === 'number') safePatch.balance = body.balance;
+    if (typeof body.isBanned === 'boolean') safePatch.isBanned = body.isBanned;
+    if (typeof body.vipStatus === 'boolean') safePatch.vipStatus = body.vipStatus;
+    if (typeof body.notes === 'string') safePatch.notes = body.notes;
+    if (typeof body.botMode === 'string') safePatch.botMode = body.botMode;
+    const updated = updateUser(id, safePatch);
+    if (!updated) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден в базе данных' });
     res.json({ user: updated });
   } catch (e) {
-    console.error('[PATCH /api/users/:id]', e);
-    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
+    console.error('[PATCH /api/users/:id]', req.params.id, req.body, e);
+    res.status(500).json({ error: 'server_error', message: `Ошибка сервера: ${e.message || e}` });
   }
 });
 

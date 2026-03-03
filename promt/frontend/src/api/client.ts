@@ -9,7 +9,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers: { 'Content-Type': 'application/json', ...options.headers },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error || res.statusText);
+  if (!res.ok) {
+    const d = data as { error?: string; message?: string };
+    throw new Error(d.message || d.error || res.statusText);
+  }
   return data as T;
 }
 

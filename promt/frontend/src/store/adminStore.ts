@@ -200,7 +200,7 @@ export const useAdminStore = create<AdminState>()(
             }),
         }),
         {
-            name: 'zyphex-admin-storage',
+            name: 'wevox-admin-storage',
             partialize: (state) => ({ settings: state.settings }),
         }
     )

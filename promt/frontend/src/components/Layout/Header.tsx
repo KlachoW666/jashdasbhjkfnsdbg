@@ -15,7 +15,7 @@ export default function Header() {
         <header className="flex w-full justify-between items-center px-4 h-[60px] bg-[#162220] border-b border-[#00E676]/10 shrink-0 relative z-40">
             <div className="flex items-center gap-2">
                 <span className="font-bold text-white text-lg tracking-tight">
-                    Zyphex <span className="text-[#00E676]">Auto Trading</span>
+                    WEVOX <span className="text-[#00E676]">Auto</span>
                 </span>
             </div>
 

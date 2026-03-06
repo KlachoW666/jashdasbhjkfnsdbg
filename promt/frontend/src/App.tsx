@@ -11,6 +11,7 @@ import StatsPage from './pages/StatsPage';
 import SettingsPage from './pages/SettingsPage';
 import AuthPage from './pages/AuthPage';
 import AdminPage from './pages/AdminPage';
+import { CONFIG } from './config';
 import { useUserStore } from './store/userStore';
 import { useTradeStore, type Trade } from './store/tradeStore';
 import { useWalletStore } from './store/walletStore';
@@ -147,7 +148,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => (
     <BottomNav />
     {!isInsideTelegram() && (
       <footer className="text-center pt-2 pb-3 text-[11px] text-[#8B949E] shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-        @ZYPHEXAUTOTRAIDINGBOT
+        {'@' + CONFIG.BOT_USERNAME}
       </footer>
     )}
   </div>
@@ -165,7 +166,7 @@ function App() {
     try {
       const exists = await MockAPI.checkRegistered();
       if (!exists) {
-        console.warn('[Zyphex] Session invalid — user not in DB, logging out');
+        console.warn('[WEVOX] Session invalid — user not in DB, logging out');
         useUserStore.getState().logout();
       }
     } catch {

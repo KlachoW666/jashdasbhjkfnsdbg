@@ -3,6 +3,7 @@ import { Loader2, MessageCircle, Lock } from 'lucide-react';
 import { MockAPI } from '../api/mockServices';
 import { useTelegram } from '../hooks/useTelegram';
 import { useTranslation } from '../hooks/useTranslation';
+import { CONFIG } from '../config';
 
 export default function AuthPage({ onLogin }: { onLogin: () => void }) {
     const [step, setStep] = useState<'welcome' | 'pin'>('welcome');
@@ -152,12 +153,12 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     <div className="w-full text-center mt-6">
                         <div className="mb-8 flex justify-center">
                             <div className="text-3xl font-bold tracking-tight">
-                                <span className="text-white">Alpha</span><span className="text-[#00E676]">Engine</span>
+                                <span className="text-white">WEVOX</span><span className="text-[#00E676]"> Auto</span>
                             </div>
                         </div>
 
                         <h1 className="text-2xl font-bold mb-3 leading-tight text-white">
-                            Добро пожаловать в Alpha Engine
+                            Добро пожаловать в WEVOX Auto
                         </h1>
                         <p className="text-[#64748B] text-sm mb-8 px-2">
                             Создайте аккаунт для начала торговли.
@@ -315,10 +316,10 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     </div>
                 )}
             </div>
-            {/* Added Zyphex Tagline */}
+            {/* Added WEVOX Tagline */}
             {step === 'welcome' && (
                 <div className="absolute bottom-6 left-0 right-0 text-center text-[11px] text-[#64748B]">
-                    @AlphaEngineTradingBot
+                    @{CONFIG.BOT_USERNAME}
                 </div>
             )}
         </div>

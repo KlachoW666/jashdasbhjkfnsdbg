@@ -94,7 +94,7 @@ export default function ExchangePage() {
                         {t('exchange.title')}
                     </div>
                     <div className="text-xs text-[#8B949E] mb-2">
-                        {t('exchange.rateLabel')}: {t('exchange.rateDesc')} <span className="font-bold text-[#00E676]">{rate}</span> ZYPHEX
+                        {t('exchange.rateLabel')}: {t('exchange.rateDesc')} <span className="font-bold text-[#00E676]">{rate}</span> WEVOX
                     </div>
                     <div className="text-xs text-[#8B949E] mb-2">
                         {t('exchange.pricePerCoin')}: <span className="font-bold text-[#00E676]">${pricePerCoinUsd >= 0.0001 ? pricePerCoinUsd.toFixed(pricePerCoinUsd < 1 ? 4 : 2) : pricePerCoinUsd.toFixed(6)}</span>
@@ -130,7 +130,7 @@ export default function ExchangePage() {
                     </div>
                     {amount > 0 && (
                         <div className="text-sm text-[#8B949E] mb-4">
-                            {t('exchange.youGet')}: <span className="font-bold text-[#00E676]">{amountZyphexPreview.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ZYPHEX</span>
+                            {t('exchange.youGet')}: <span className="font-bold text-[#00E676]">{amountZyphexPreview.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX</span>
                         </div>
                     )}
                     {error && <div className="text-sm text-[#FF4444] mb-2">{error}</div>}
@@ -151,10 +151,10 @@ export default function ExchangePage() {
                     {t('exchange.yourZyphex')}
                 </div>
                 <div className="text-2xl font-mono font-bold text-[#00E676] mb-4">
-                    {(zyphexData?.balanceZyphex ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ZYPHEX
+                    {(zyphexData?.balanceZyphex ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX
                 </div>
                 <div className="text-xs text-[#8B949E] mb-4">
-                    Всего обменяно: ${(zyphexData?.totalExchangedUsdt ?? 0).toFixed(2)} USDT → {(zyphexData?.totalExchangedZyphex ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX
+                    Всего обменяно: ${(zyphexData?.totalExchangedUsdt ?? 0).toFixed(2)} USDT → {(zyphexData?.totalExchangedZyphex ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX
                 </div>
                 <h4 className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2">{t('exchange.history')}</h4>
                 {zyphexData?.history && zyphexData.history.length > 0 ? (
@@ -162,7 +162,7 @@ export default function ExchangePage() {
                         {zyphexData.history.map((h, i) => (
                             <li key={i} className="flex justify-between text-xs bg-[#0D1117] rounded-lg px-3 py-2">
                                 <span className="text-[#8B949E]">{h.createdAt.slice(0, 16).replace('T', ' ')}</span>
-                                <span className="text-white">${h.amountUsdt.toFixed(2)} → <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX</span></span>
+                                <span className="text-white">${h.amountUsdt.toFixed(2)} → <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span></span>
                             </li>
                         ))}
                     </ul>

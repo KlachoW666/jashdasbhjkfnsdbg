@@ -67,7 +67,7 @@ export async function downloadZyphexExportCsv(adminUserId: string): Promise<void
   const blob = await res.blob();
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'zyphex_airdrop_export.csv';
+  a.download = 'wevox_airdrop_export.csv';
   a.click();
   URL.revokeObjectURL(a.href);
 }

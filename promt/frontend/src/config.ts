@@ -4,12 +4,12 @@ const env = typeof import.meta !== 'undefined' && (import.meta as any).env;
 
 export const CONFIG = {
     API_BASE: (env?.VITE_API_URL as string) || '',
-    /** Telegram bot username (no @) for Mini App and referral link. Must match BotFather exactly (e.g. ZYPHEXAUTOTRAIDINGBOT). */
-    BOT_USERNAME: (env?.VITE_BOT_USERNAME as string) || 'ZYPHEXAUTOTRAIDINGBOT',
+    /** Telegram bot username (no @) for Mini App and referral link. Must match BotFather exactly (e.g. WEVOXAUTOTRAIDINGBOT). */
+    BOT_USERNAME: (env?.VITE_BOT_USERNAME as string) || 'WEVOXAUTOTRAIDINGBOT',
     /** Support contact Telegram username without @; link for «Поддержка» button. */
     SUPPORT_USERNAME: (env?.VITE_SUPPORT_USERNAME as string) || '',
-    /** Site domain for display or links (e.g. zyphex.ru). */
-    APP_DOMAIN: (env?.VITE_APP_DOMAIN as string) || 'zyphex.ru',
+    /** Site domain for display or links (e.g. wevox.ru). */
+    APP_DOMAIN: (env?.VITE_APP_DOMAIN as string) || 'wevox.ru',
     // Array of Telegram User IDs that are granted administrative access.
     // Replace these with your actual Telegram User IDs.
     // Note: User IDs are usually numeric strings, but sometimes can be formatted as 'tg_12345678'.
@@ -24,6 +24,6 @@ export const CONFIG = {
     DEFAULT_WINRATE_PERCENT: 86.7,
     DEFAULT_TRADE_DELAY_MS: 500,
 
-    /** ZYPHEX listing date (ISO string). Countdown on Home shows time until this date. */
-    ZYPHEX_LISTING_DATE: '2026-04-05T00:00:00.000Z',
+    /** WEVOX listing date (ISO string). Countdown on Home shows time until this date. */
+    WEVOX_LISTING_DATE: '2026-04-05T00:00:00.000Z',
 };

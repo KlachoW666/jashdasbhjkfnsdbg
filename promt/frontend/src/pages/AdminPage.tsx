@@ -11,7 +11,7 @@ import AdminAuditLog from '../components/admin/AdminAuditLog';
 import AdminZyphex from '../components/admin/AdminZyphex';
 import UserManagementModal from '../components/features/UserManagementModal';
 
-type AdminTab = 'dashboard' | 'users' | 'finance' | 'trade' | 'broadcast' | 'zyphex' | 'settings' | 'audit';
+type AdminTab = 'dashboard' | 'users' | 'finance' | 'trade' | 'broadcast' | 'wevox' | 'settings' | 'audit';
 
 const tabs: { key: AdminTab; label: string; icon: any }[] = [
     { key: 'dashboard', label: '📊', icon: LayoutDashboard },
@@ -19,7 +19,7 @@ const tabs: { key: AdminTab; label: string; icon: any }[] = [
     { key: 'finance', label: '💸', icon: DollarSign },
     { key: 'trade', label: '🤖', icon: Bot },
     { key: 'broadcast', label: '📢', icon: Megaphone },
-    { key: 'zyphex', label: '🪙', icon: Coins },
+    { key: 'wevox', label: '🪙', icon: Coins },
     { key: 'settings', label: '⚙️', icon: Settings },
     { key: 'audit', label: '📋', icon: ScrollText },
 ];
@@ -30,7 +30,7 @@ const tabNames: Record<AdminTab, string> = {
     finance: 'Финансы',
     trade: 'Торговля',
     broadcast: 'Рассылка',
-    zyphex: 'ZYPHEX',
+    wevox: 'WEVOX',
     settings: 'Настройки',
     audit: 'Журнал',
 };
@@ -79,7 +79,7 @@ export default function AdminPage() {
             case 'finance': return <AdminFinance />;
             case 'trade': return <AdminTradeSettings />;
             case 'broadcast': return <AdminBroadcast />;
-            case 'zyphex': return <AdminZyphex />;
+            case 'wevox': return <AdminZyphex />;
             case 'settings': return <AdminSystemSettings />;
             case 'audit': return <AdminAuditLog />;
         }

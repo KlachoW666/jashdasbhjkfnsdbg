@@ -59,7 +59,7 @@ export default function AdminZyphex() {
             return;
         }
         if (num < sold) {
-            setMessage(`Объём пула не может быть меньше уже выданного (${sold.toLocaleString()} ZYPHEX)`);
+            setMessage(`Объём пула не может быть меньше уже выданного (${sold.toLocaleString()} WEVOX)`);
             return;
         }
         if (!adminUserId) return;
@@ -95,9 +95,9 @@ export default function AdminZyphex() {
             <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Coins size={20} />
-                    Курс ZYPHEX
+                    Курс WEVOX
                 </div>
-                <p className="text-xs text-[#8B949E] mb-2">Начальный курс (при полном пуле): ZYPHEX за 1 USDT. Фактический курс растёт по мере уменьшения остатка пула.</p>
+                <p className="text-xs text-[#8B949E] mb-2">Начальный курс (при полном пуле): WEVOX за 1 USDT. Фактический курс растёт по мере уменьшения остатка пула.</p>
                 <div className="flex gap-2 mb-2">
                     <input
                         type="number"
@@ -116,15 +116,15 @@ export default function AdminZyphex() {
                         Сохранить
                     </button>
                 </div>
-                <p className="text-[10px] text-[#8B949E]">Начальный курс при полном пуле: 1 USDT = <span className="text-[#00E676] font-bold">{savedRate}</span> ZYPHEX</p>
+                <p className="text-[10px] text-[#8B949E]">Начальный курс при полном пуле: 1 USDT = <span className="text-[#00E676] font-bold">{savedRate}</span> WEVOX</p>
             </div>
 
             <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Database size={20} />
-                    Объём пула ZYPHEX
+                    Объём пула WEVOX
                 </div>
-                <p className="text-xs text-[#8B949E] mb-2">Всего в пуле (всего доступно к выдаче). Уже выдано: <span className="text-[#00E676] font-mono">{sold.toLocaleString()}</span> ZYPHEX.</p>
+                <p className="text-xs text-[#8B949E] mb-2">Всего в пуле (всего доступно к выдаче). Уже выдано: <span className="text-[#00E676] font-mono">{sold.toLocaleString()}</span> WEVOX.</p>
                 <div className="flex gap-2 mb-2">
                     <input
                         type="number"
@@ -143,12 +143,12 @@ export default function AdminZyphex() {
                         Сохранить
                     </button>
                 </div>
-                <p className="text-[10px] text-[#8B949E]">Текущий объём пула: <span className="text-[#00E676] font-bold font-mono">{savedSupply.toLocaleString()}</span> ZYPHEX</p>
+                <p className="text-[10px] text-[#8B949E]">Текущий объём пула: <span className="text-[#00E676] font-bold font-mono">{savedSupply.toLocaleString()}</span> WEVOX</p>
             </div>
 
             <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
                 <div className="font-bold text-white mb-2">Экспорт для airdrop</div>
-                <p className="text-xs text-[#8B949E] mb-3">Скачать CSV со списком пользователей и балансами ZYPHEX (user_id, telegram_id, name, balance_zyphex, total_exchanged_usdt, total_exchanged_zyphex).</p>
+                <p className="text-xs text-[#8B949E] mb-3">Скачать CSV со списком пользователей и балансами WEVOX (user_id, telegram_id, name, balance_wevox, total_exchanged_usdt, total_exchanged_wevox).</p>
                 <button
                     onClick={handleExport}
                     disabled={exporting}

@@ -331,7 +331,7 @@ app.get('/api/referral/info', (req, res) => {
       refCode: u.ref_code,
       invitedCount: u.referral_count ?? 0,
       totalEarned: u.referral_earnings ?? 0,
-      refLink: `https://t.me/${process.env.BOT_USERNAME || 'ZYPHEXAUTOTRAIDINGBOT'}/app?startapp=${u.ref_code}`,
+      refLink: `https://t.me/${process.env.BOT_USERNAME || 'WEVOXAUTOTRAIDINGBOT'}/app?startapp=${u.ref_code}`,
     });
   } catch (e) {
     console.error(e);
@@ -710,7 +710,7 @@ app.get('/api/admin/zyphex/export', (req, res) => {
       const header = 'user_id,telegram_id,name,balance_zyphex,total_exchanged_usdt,total_exchanged_zyphex';
       const rows = list.map(r => `${r.userId},${r.telegramId},"${String(r.name).replace(/"/g, '""')}",${r.balanceZyphex},${r.totalExchangedUsdt},${r.totalExchangedZyphex}`);
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename=zyphex_airdrop_export.csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=wevox_airdrop_export.csv');
       return res.send('\uFEFF' + header + '\n' + rows.join('\n'));
     }
     res.json({ list });
@@ -726,7 +726,7 @@ app.get('/api/admin/zyphex/export', (req, res) => {
 
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
-  console.log(`Zyphex API listening on port ${PORT}`);
+  console.log(`WEVOX API listening on port ${PORT}`);
   console.log(`Database: ${dbPath} (settings persist across restarts; set DB_PATH for custom path)`);
   startMonitoring();
 });

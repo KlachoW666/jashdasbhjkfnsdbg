@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 function useListingCountdown() {
     const [left, setLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
     useEffect(() => {
-        const end = new Date(CONFIG.ZYPHEX_LISTING_DATE).getTime();
+        const end = new Date(CONFIG.WEVOX_LISTING_DATE).getTime();
         const tick = () => {
             const now = Date.now();
             const diff = Math.max(0, end - now);
@@ -37,11 +37,11 @@ export default function HomePage() {
     const { trades, metrics, isTradingActive, toggleTrading, boostEndTime, activateBoost } = useTradeStore();
     const { totalUsd, totalDeposited } = useWalletStore();
     const countdown = useListingCountdown();
-    const [zyphexRate, setZyphexRate] = useState<number | null>(null);
+    const [wevoxRate, setWevoxRate] = useState<number | null>(null);
     const [boostTimeLeft, setBoostTimeLeft] = useState<string | null>(null);
 
     useEffect(() => {
-        MockAPI.getZyphexRate().then((r) => setZyphexRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setZyphexRate(null));
+        MockAPI.getZyphexRate().then((r) => setWevoxRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setWevoxRate(null));
     }, []);
 
     // Timer for Boost
@@ -208,21 +208,21 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ZYPHEX & Listing countdown */}
+            {/* WEVOX & Listing countdown */}
             <section>
                 <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-lg bg-[#00E676]/10 flex items-center justify-center">
                         <Coins className="w-4 h-4 text-[#00E676]" />
                     </div>
-                    <h2 className="text-lg font-semibold text-[#F8FAFC]">{t('home.zyphexTitle')}</h2>
+                    <h2 className="text-lg font-semibold text-[#F8FAFC]">{t('home.wevoxTitle')}</h2>
                 </div>
                 <div className="glass-card rounded-2xl p-5 space-y-4">
                     <p className="text-sm text-[#94A3B8] leading-relaxed">
-                        {t('home.zyphexDesc')}
+                        {t('home.wevoxDesc')}
                     </p>
-                    {zyphexRate != null && zyphexRate > 0 && (
+                    {wevoxRate != null && wevoxRate > 0 && (
                         <p className="text-sm text-[#00E676] font-medium">
-                            {t('home.zyphexPriceLabel')}: 1 ZYPHEX = ${(1 / zyphexRate).toFixed((1 / zyphexRate) < 1 ? 4 : 2)}
+                            {t('home.wevoxPriceLabel')}: 1 WEVOX = ${(1 / wevoxRate).toFixed((1 / wevoxRate) < 1 ? 4 : 2)}
                         </p>
                     )}
                     {countdown !== null && (

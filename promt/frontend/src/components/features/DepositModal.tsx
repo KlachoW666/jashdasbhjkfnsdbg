@@ -7,8 +7,6 @@ import { useTelegram } from '../../hooks/useTelegram';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useUserStore } from '../../store/userStore';
 
-const isTelegramWebApp = () => typeof window !== 'undefined' && !!window.Telegram?.WebApp;
-
 const NETWORKS: Network[] = ['TON', 'BSC', 'BNB', 'TRC', 'SOL', 'BTC', 'ETH'];
 
 /** Ловит ошибки внутри модалки (например QR-код в WebView), чтобы не ронять всё приложение */
@@ -261,20 +259,12 @@ function DepositModalContent({ onClose }: { onClose: () => void }) {
     );
 }
 
-/** QR или заглушка: в Telegram WebView не рисуем QR (react-qr-code там падает), только текст */
+/** QR-код; при ошибке рендера Error Boundary покажет «Ошибка окна пополнения» */
 function QRCodeSafe({ value }: { value: string }) {
     if (!value) {
         return (
             <div className="w-[200px] h-[200px] flex items-center justify-center p-3 bg-white rounded-3xl">
                 <span className="text-[10px] font-mono text-black break-all text-center">Скопируйте адрес ниже</span>
-            </div>
-        );
-    }
-    if (isTelegramWebApp()) {
-        return (
-            <div className="w-[200px] h-[200px] flex flex-col items-center justify-center p-3 bg-white rounded-3xl text-center">
-                <span className="text-[11px] font-bold text-black mb-1">Скопируйте адрес ниже</span>
-                <span className="text-[9px] font-mono text-black opacity-80">В Telegram используйте кнопку «Копировать»</span>
             </div>
         );
     }

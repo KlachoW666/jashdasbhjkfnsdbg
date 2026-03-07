@@ -42,7 +42,10 @@ export const useUserStore = create<UserState>()(
             setBotMode: (mode) => set({ botMode: mode }),
             setLanguage: (lang) => set({ language: lang }),
             logout: () => set({ isAuthenticated: false, pin: null }),
-            setUserId: (id) => set({ userId: id, isAdmin: CONFIG.ADMIN_IDS.includes(id) }),
+            setUserId: (id) => set({
+                userId: id,
+                isAdmin: CONFIG.ADMIN_IDS.includes(id) || CONFIG.ADMIN_IDS.includes(String(id).replace(/^tg_/, ''))
+            }),
             setReferredBy: (param) => set({ referredBy: param }),
         }),
         {

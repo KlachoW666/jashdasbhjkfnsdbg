@@ -62,7 +62,7 @@ if pm2 describe wevox-api >/dev/null 2>&1; then
     echo "Restarting backend (wevox-api)..."
     pm2 delete wevox-api 2>/dev/null || true
 fi
-echo "Starting backend (wevox-api) on port $BACKEND_PORT (always on: restart on crash and on boot)..."
+echo "Starting backend (wevox-api) on port $BACKEND_PORT — PM2: restart on crash and on boot."
 PORT=$BACKEND_PORT pm2 start server.js --name wevox-api --cwd "$APP_DIR/promt/backend" \
     --max-restarts 999999 \
     --restart-delay 3000 \

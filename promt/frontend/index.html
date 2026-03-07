@@ -14,9 +14,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      // Expand and theme — ready() вызываем из React после монтирования, чтобы спиннер Telegram исчез только когда приложение отрисовалось
+      // Сразу убираем индикатор загрузки Telegram (4 квадрата), показываем свой экран «Загрузка…»
       if (window.Telegram && window.Telegram.WebApp) {
         var tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
         if (tg.enableClosingConfirmation) tg.enableClosingConfirmation(false);
         if (tg.isVersionAtLeast && tg.isVersionAtLeast('6.7') && tg.setViewportStableHeight) tg.setViewportStableHeight(true);
@@ -29,8 +30,22 @@
   </head>
   <body>
     <div id="root">
-      <div style="display:flex;align-items:center;justify-content:center;min-height:100dvh;background:linear-gradient(180deg,#0B0F19 0%,#060A13 100%);color:#94A3B8;font-family:system-ui,sans-serif;">Загрузка…</div>
+      <div id="loading-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;background:linear-gradient(180deg,#0B0F19 0%,#060A13 100%);color:#94A3B8;font-family:system-ui,sans-serif;padding:20px;text-align:center;">
+        <span>Загрузка…</span>
+        <button id="reload-btn" type="button" style="display:none;margin-top:16px;padding:12px 24px;background:#00E676;color:#000;border:none;border-radius:12px;font-weight:600;font-size:14px;cursor:pointer;">Обновить страницу</button>
+      </div>
     </div>
+    <script>
+      setTimeout(function(){
+        var btn = document.getElementById('reload-btn');
+        if (btn) {
+          btn.style.display = 'block';
+          var span = document.querySelector('#loading-screen span');
+          if (span) span.textContent = 'Долго загружается?';
+        }
+      }, 10000);
+      document.getElementById('reload-btn').addEventListener('click', function(){ window.location.reload(); });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

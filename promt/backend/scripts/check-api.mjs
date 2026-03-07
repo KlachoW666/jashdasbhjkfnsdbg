@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * API verification script. Run after deploy to ensure backend and DB respond.
- * Usage: node scripts/check-api.mjs
+ * API verification script. Run after deploy or in CI to ensure backend and DB respond.
+ * Usage: node scripts/check-api.mjs   or   npm test   (from promt/backend)
+ * Exit: 0 if all checks pass, 1 otherwise (suitable for CI).
  * Env: BASE_URL (default http://localhost:3001), optional USER_ID, ADMIN_USER_ID
  */
 

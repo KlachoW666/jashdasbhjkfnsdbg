@@ -72,6 +72,34 @@ export async function downloadZyphexExportCsv(adminUserId: string): Promise<void
   URL.revokeObjectURL(a.href);
 }
 
+export type PromoCodeItem = {
+  id: number;
+  code: string;
+  amountZyphex: number;
+  maxUses: number;
+  usedCount: number;
+  createdAt: string;
+};
+
+export async function listPromoCodes(adminUserId: string): Promise<PromoCodeItem[]> {
+  const res = await api.get<{ promos: PromoCodeItem[] }>(`/api/admin/promos?userId=${encodeURIComponent(adminUserId)}`);
+  return res.promos || [];
+}
+
+export async function createPromoCode(
+  adminUserId: string,
+  code: string,
+  amountZyphex: number,
+  maxUses: number
+): Promise<{ promo: PromoCodeItem }> {
+  const res = await api.post<{ promo: PromoCodeItem }>(`/api/admin/promos?userId=${encodeURIComponent(adminUserId)}`, {
+    code: String(code).trim(),
+    amountZyphex,
+    maxUses,
+  });
+  return res;
+}
+
 export type WithdrawalRequest = {
   id: string;
   userId: string;

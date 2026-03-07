@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Coins, Save, Download, Database } from 'lucide-react';
+import { Coins, Save, Download, Database, Ticket } from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
-import { getZyphexRate, setZyphexRate, getZyphexSupply, setZyphexSupply, downloadZyphexExportCsv } from '../../api/adminApi';
+import { getZyphexRate, setZyphexRate, getZyphexSupply, setZyphexSupply, downloadZyphexExportCsv, listPromoCodes, createPromoCode, type PromoCodeItem } from '../../api/adminApi';
 
 export default function AdminZyphex() {
     const { userId: adminUserId } = useUserStore();
@@ -14,6 +14,11 @@ export default function AdminZyphex() {
     const [loadingSupply, setLoadingSupply] = useState(false);
     const [exporting, setExporting] = useState(false);
     const [message, setMessage] = useState('');
+    const [promos, setPromos] = useState<PromoCodeItem[]>([]);
+    const [promoCode, setPromoCode] = useState('');
+    const [promoAmount, setPromoAmount] = useState('');
+    const [promoMaxUses, setPromoMaxUses] = useState('');
+    const [promoCreating, setPromoCreating] = useState(false);
 
     useEffect(() => {
         if (!adminUserId) return;
@@ -30,6 +35,11 @@ export default function AdminZyphex() {
             setSupply(String(data.supply));
             setSold(data.sold);
         }).catch(() => {});
+    }, [adminUserId]);
+
+    useEffect(() => {
+        if (!adminUserId) return;
+        listPromoCodes(adminUserId).then(setPromos).catch(() => setPromos([]));
     }, [adminUserId]);
 
     const handleSaveRate = async () => {
@@ -87,6 +97,34 @@ export default function AdminZyphex() {
             setMessage('Ошибка экспорта');
         } finally {
             setExporting(false);
+        }
+    };
+
+    const handleCreatePromo = async () => {
+        const code = promoCode.trim().toUpperCase();
+        const amount = parseFloat(promoAmount);
+        const maxUses = parseInt(promoMaxUses, 10);
+        if (!code || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(maxUses) || maxUses < 1) {
+            setMessage('Заполните код, количество WEVOX (положительное) и макс. использований (≥ 1)');
+            return;
+        }
+        if (!adminUserId) return;
+        setPromoCreating(true);
+        setMessage('');
+        try {
+            await createPromoCode(adminUserId, code, amount, maxUses);
+            setPromoCode('');
+            setPromoAmount('');
+            setPromoMaxUses('');
+            setMessage('Промокод создан');
+            const list = await listPromoCodes(adminUserId);
+            setPromos(list);
+        } catch (e: unknown) {
+            const err = e instanceof Error ? e : null;
+            const msg = err?.message ?? '';
+            setMessage(msg === 'code_exists' || (err as { error?: string })?.error === 'code_exists' ? 'Промокод с таким кодом уже есть' : 'Ошибка создания промокода');
+        } finally {
+            setPromoCreating(false);
         }
     };
 
@@ -157,6 +195,63 @@ export default function AdminZyphex() {
                     <Download size={16} />
                     {exporting ? 'Скачивание...' : 'Скачать CSV'}
                 </button>
+            </div>
+
+            <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5">
+                <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
+                    <Ticket size={20} />
+                    Промокоды
+                </div>
+                <p className="text-xs text-[#8B949E] mb-3">Создайте промокод: при активации пользователь получит указанное количество WEVOX (один раз на пользователя). Список использований ограничен.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+                    <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        placeholder="Код (напр. PROMO)"
+                        className="bg-[#0D1117] border border-[#30363D] rounded-xl py-2.5 px-4 text-white text-sm uppercase"
+                    />
+                    <input
+                        type="number"
+                        min={0.001}
+                        step={1}
+                        value={promoAmount}
+                        onChange={(e) => setPromoAmount(e.target.value)}
+                        placeholder="WEVOX"
+                        className="bg-[#0D1117] border border-[#30363D] rounded-xl py-2.5 px-4 text-white text-sm"
+                    />
+                    <input
+                        type="number"
+                        min={1}
+                        value={promoMaxUses}
+                        onChange={(e) => setPromoMaxUses(e.target.value)}
+                        placeholder="Макс. использований"
+                        className="bg-[#0D1117] border border-[#30363D] rounded-xl py-2.5 px-4 text-white text-sm"
+                    />
+                </div>
+                <button
+                    onClick={handleCreatePromo}
+                    disabled={promoCreating}
+                    className="flex items-center gap-2 bg-[#00D26A] text-black rounded-xl py-2.5 px-4 font-bold text-sm disabled:opacity-50"
+                >
+                    <Ticket size={16} />
+                    {promoCreating ? 'Создание...' : 'Создать промокод'}
+                </button>
+                {promos.length > 0 && (
+                    <div className="mt-4">
+                        <div className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2">Список промокодов</div>
+                        <ul className="space-y-2 max-h-48 overflow-y-auto thin-scrollbar">
+                            {promos.map((p) => (
+                                <li key={p.id} className="flex items-center justify-between text-sm bg-[#0D1117] rounded-lg px-3 py-2 border border-[#30363D]">
+                                    <span className="font-mono font-bold text-white">{p.code}</span>
+                                    <span className="text-[#00E676]">{p.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span>
+                                    <span className="text-[#8B949E]">{p.usedCount} / {p.maxUses}</span>
+                                    <span className="text-[#8B949E] text-[10px]">{p.createdAt?.slice(0, 10)}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
 
             {message && (

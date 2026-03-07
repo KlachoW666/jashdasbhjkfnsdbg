@@ -116,7 +116,15 @@ export const translations = {
             errorSupplyExhausted: 'Пул WEVOX исчерпан',
             errorServer: 'Ошибка сервера. Попробуйте позже.',
             errorServerUnavailable: 'Сервер временно недоступен. Попробуйте через минуту.',
-            errorSession: 'Сессия устарела. Войдите снова.'
+            errorSession: 'Сессия устарела. Войдите снова.',
+            promoTitle: 'Промокод',
+            promoPlaceholder: 'Введите код',
+            promoActivate: 'Активировать',
+            promoSuccess: 'Промокод активирован',
+            promoErrorInvalid: 'Неверный промокод',
+            promoErrorAlreadyUsed: 'Вы уже использовали этот промокод',
+            promoErrorNoUses: 'Лимит активаций промокода исчерпан',
+            promoErrorSupply: 'В пуле недостаточно WEVOX для промо'
         },
         referral: {
             title: 'Ваша реферальная ссылка',
@@ -328,7 +336,15 @@ export const translations = {
             errorSupplyExhausted: 'WEVOX pool exhausted',
             errorServer: 'Server error. Try again later.',
             errorServerUnavailable: 'Server temporarily unavailable. Try again in a minute.',
-            errorSession: 'Session expired. Please log in again.'
+            errorSession: 'Session expired. Please log in again.',
+            promoTitle: 'Promo code',
+            promoPlaceholder: 'Enter code',
+            promoActivate: 'Activate',
+            promoSuccess: 'Promo code activated',
+            promoErrorInvalid: 'Invalid promo code',
+            promoErrorAlreadyUsed: 'You have already used this promo code',
+            promoErrorNoUses: 'Promo code usage limit reached',
+            promoErrorSupply: 'Not enough WEVOX in pool for promo'
         },
         referral: {
             title: 'Your referral link',

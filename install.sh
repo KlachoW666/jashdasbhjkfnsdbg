@@ -100,10 +100,26 @@ chmod -R 755 /var/www/miniapp/.well-known 2>/dev/null || true
 
 NGINX_CONF="/etc/nginx/sites-available/miniapp"
 cat > "$NGINX_CONF" << NGINXEOF
+# Redirect IP to canonical domain (WEVOX.RU)
 server {
     listen 80;
     listen [::]:80;
-    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
+    server_name $SERVER_IP;
+    return 301 https://$DOMAIN\$request_uri;
+}
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name $SERVER_IP;
+    ssl_certificate     $CERT_PEM;
+    ssl_certificate_key  $KEY_PEM;
+    return 301 https://$DOMAIN\$request_uri;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN www.$DOMAIN;
 
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/miniapp;
@@ -118,7 +134,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
+    server_name $DOMAIN www.$DOMAIN;
 
     ssl_certificate     $CERT_PEM;
     ssl_certificate_key $KEY_PEM;
@@ -180,10 +196,26 @@ STAPLING=""
     ssl_stapling_verify on;
     ssl_trusted_certificate /etc/letsencrypt/live/$DOMAIN/chain.pem;"
 cat > "$NGINX_CONF" << NGINXEOF2
+# Redirect IP to canonical domain (WEVOX.RU)
 server {
     listen 80;
     listen [::]:80;
-    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
+    server_name $SERVER_IP;
+    return 301 https://$DOMAIN\$request_uri;
+}
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name $SERVER_IP;
+    ssl_certificate     $CERT_PEM;
+    ssl_certificate_key  $KEY_PEM;
+    return 301 https://$DOMAIN\$request_uri;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name $DOMAIN www.$DOMAIN;
 
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/miniapp;
@@ -198,7 +230,7 @@ server {
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name $DOMAIN www.$DOMAIN $SERVER_IP;
+    server_name $DOMAIN www.$DOMAIN;
 
     ssl_certificate     $CERT_PEM;
     ssl_certificate_key $KEY_PEM;

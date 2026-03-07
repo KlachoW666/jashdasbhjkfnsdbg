@@ -22,6 +22,7 @@ import {
   getWithdrawLimits,
   createWithdrawalRequest,
   getWithdrawalRequests,
+  getWithdrawalRequestsEnriched,
   updateWithdrawalRequestStatus,
   createBroadcast,
   listBroadcasts,
@@ -44,6 +45,9 @@ import {
   getTotalZyphexSold,
   getZyphexTotalSupply,
   setZyphexTotalSupply,
+  createPromoCode,
+  listPromoCodes,
+  activatePromo,
   dbPath,
 } from './db.js';
 import { startMonitoring } from './depositMonitor.js';
@@ -389,6 +393,29 @@ app.post('/api/zyphex/exchange', (req, res) => {
   }
 });
 
+app.post('/api/promo/activate', (req, res) => {
+  try {
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const userId = body.userId;
+    const code = body.code;
+    if (!userId || code == null || String(code).trim() === '') {
+      return res.status(400).json({ error: 'userId and code required' });
+    }
+    const result = activatePromo(userId, String(code).trim());
+    if (result.error) {
+      const status = result.error === 'user_not_found' ? 404 : 400;
+      return res.status(status).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (e) {
+    const msg = e?.message || String(e);
+    console.error('[promo/activate]', msg);
+    if (e?.stack) console.error(e.stack);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.status(500).json({ error: 'server_error', ...(isProd ? {} : { detail: msg }) });
+  }
+});
+
 // ══════════════════════════════════════
 // Settings
 // ══════════════════════════════════════
@@ -444,10 +471,11 @@ app.post('/api/settings/reset-balance', (req, res) => {
     const { userId, confirmPin } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const user = findUserByTelegramId(userId.replace(/^tg_/, ''));
-    if (user && confirmPin && !verifyPin(confirmPin, user.pin_hash)) {
+    if (!user) return res.status(404).json({ error: 'not_found', message: 'Пользователь не найден' });
+    if (confirmPin && !verifyPin(confirmPin, user.pin_hash)) {
       return res.status(401).json({ error: 'wrong_pin' });
     }
-    resetUserBalance(userId);
+    resetUserBalance(user.id);
     res.json({ ok: true });
   } catch (e) {
     console.error(e);
@@ -545,12 +573,8 @@ app.get('/api/admin/withdrawal-requests', (req, res) => {
     const adminUserId = req.query.userId || req.headers['x-user-id'];
     if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
     const status = req.query.status || null;
-    const list = getWithdrawalRequests(status);
-    const enriched = list.map((r) => {
-      const user = getUserById(r.userId);
-      return { ...r, userName: user?.name || r.userId };
-    });
-    res.json({ requests: enriched });
+    const requests = getWithdrawalRequestsEnriched(status);
+    res.json({ requests });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'server_error' });
@@ -605,6 +629,13 @@ app.post('/api/admin/broadcast', (req, res) => {
   }
 });
 
+const BROADCAST_RETRY_ATTEMPTS = 3;
+const BROADCAST_RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function sendBroadcastViaTelegram(broadcastId) {
   const b = getBroadcastById(broadcastId);
   if (!b || b.sent_at) return { sent: 0, failed: 0 };
@@ -612,7 +643,7 @@ async function sendBroadcastViaTelegram(broadcastId) {
   if (!token) return { sent: 0, failed: 0, error: 'TELEGRAM_BOT_TOKEN not set' };
   const telegramIds = getTelegramIdsForAudience(b.audience);
   let sent = 0;
-  let failed = 0;
+  let failedIds = [];
   for (const chatId of telegramIds) {
     try {
       await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -622,10 +653,33 @@ async function sendBroadcastViaTelegram(broadcastId) {
       }, { timeout: 5000 });
       sent++;
     } catch (err) {
-      failed++;
+      failedIds.push(chatId);
+      console.error(`[broadcast ${broadcastId}] send failed for chat_id=${chatId}:`, err.response?.data?.description || err.message);
     }
   }
-  markBroadcastSent(broadcastId);
+  for (let attempt = 0; attempt < BROADCAST_RETRY_ATTEMPTS && failedIds.length > 0; attempt++) {
+    const delayMs = BROADCAST_RETRY_DELAYS_MS[attempt] ?? 4000;
+    await delay(delayMs);
+    const stillFailing = [];
+    for (const chatId of failedIds) {
+      try {
+        await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+          chat_id: chatId,
+          text: b.message,
+          parse_mode: 'HTML',
+        }, { timeout: 5000 });
+        sent++;
+      } catch (err) {
+        stillFailing.push(chatId);
+        console.error(`[broadcast ${broadcastId}] retry ${attempt + 1}/${BROADCAST_RETRY_ATTEMPTS} failed for chat_id=${chatId}:`, err.response?.data?.description || err.message);
+      }
+    }
+    failedIds = stillFailing;
+  }
+  const failed = failedIds.length;
+  if (failed === 0) {
+    markBroadcastSent(broadcastId);
+  }
   return { sent, failed };
 }
 
@@ -694,6 +748,38 @@ app.put('/api/admin/zyphex/supply', (req, res) => {
     if (!Number.isFinite(supply) || supply < 0) return res.status(400).json({ error: 'invalid_supply' });
     setZyphexTotalSupply(supply);
     res.json({ ok: true, supply: getZyphexTotalSupply() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.get('/api/admin/promos', (req, res) => {
+  try {
+    const adminUserId = req.query.userId || req.headers['x-user-id'];
+    if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
+    const list = listPromoCodes();
+    res.json({ promos: list });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.post('/api/admin/promos', (req, res) => {
+  try {
+    const adminUserId = req.query.userId || req.headers['x-user-id'];
+    if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
+    const { code, amountZyphex, maxUses } = req.body || {};
+    if (!code || amountZyphex == null || maxUses == null) {
+      return res.status(400).json({ error: 'code, amountZyphex and maxUses required' });
+    }
+    const result = createPromoCode(String(code).trim(), Number(amountZyphex), Number(maxUses));
+    if (result.error) {
+      const status = result.error === 'code_exists' ? 409 : 400;
+      return res.status(status).json({ error: result.error });
+    }
+    res.status(201).json(result);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'server_error' });

@@ -159,6 +159,20 @@ export const MockAPI = {
         };
     },
 
+    async activatePromo(code: string): Promise<{ amountZyphex: number; newBalanceZyphex: number }> {
+        const userId = useUserStore.getState().userId;
+        if (!userId) throw new Error('not_authenticated');
+        const res = await api.post<{ success?: boolean; amountZyphex?: number; newBalanceZyphex?: number; error?: string }>(
+            '/api/promo/activate',
+            { userId, code: String(code).trim() }
+        );
+        if (res.error) throw new Error(res.error);
+        return {
+            amountZyphex: res.amountZyphex!,
+            newBalanceZyphex: res.newBalanceZyphex!,
+        };
+    },
+
     async getDepositAddress(network: Network): Promise<{ address: string; memo: string }> {
         const userId = useUserStore.getState().userId;
         if (!userId) return { address: '', memo: '' };

@@ -53,31 +53,47 @@ function matchMemo(text, pendingList) {
 }
 
 // ══════════════════════════════════════
-// Exchange rates (CoinGecko, cache 60s)
+// Exchange rates (CoinGecko). TTL 60s; max age 5 min; invalidate after N failures.
 // ══════════════════════════════════════
 
 const RATES_CACHE_MS = 60_000;
-let ratesCache = { TON: 3.5, BNB: 600, ETH: 3500, TRC: 0.12, SOL: 140, BTC: 60000 };
+const RATES_CACHE_MAX_AGE_MS = 300_000;
+const RATES_STALE_AFTER_FAILURES = 3;
+const DEFAULT_RATES = { TON: 3.5, BNB: 600, ETH: 3500, TRC: 0.12, SOL: 140, BTC: 60000 };
+let ratesCache = { ...DEFAULT_RATES };
 let ratesCacheTime = 0;
+let ratesConsecutiveFailures = 0;
 
 async function getRates() {
-    if (Date.now() - ratesCacheTime < RATES_CACHE_MS) return ratesCache;
+    const now = Date.now();
+    if (ratesCacheTime > 0 && now - ratesCacheTime > RATES_CACHE_MAX_AGE_MS) {
+        ratesCacheTime = 0;
+    }
+    if (now - ratesCacheTime < RATES_CACHE_MS && ratesConsecutiveFailures < RATES_STALE_AFTER_FAILURES && ratesCacheTime > 0) {
+        return ratesCache;
+    }
     try {
         const { data } = await axios.get(
             'https://api.coingecko.com/api/v3/simple/price',
             { params: { ids: 'the-open-network,binancecoin,ethereum,tron,solana,bitcoin', vs_currencies: 'usd' }, timeout: 8000 }
         );
         ratesCache = {
-            TON: Number(data?.['the-open-network']?.usd) || ratesCache.TON,
-            BNB: Number(data?.binancecoin?.usd) || ratesCache.BNB,
-            ETH: Number(data?.ethereum?.usd) || ratesCache.ETH,
-            TRC: Number(data?.tron?.usd) || ratesCache.TRC,
-            SOL: Number(data?.solana?.usd) || ratesCache.SOL,
-            BTC: Number(data?.bitcoin?.usd) || ratesCache.BTC,
+            TON: Number(data?.['the-open-network']?.usd) || DEFAULT_RATES.TON,
+            BNB: Number(data?.binancecoin?.usd) || DEFAULT_RATES.BNB,
+            ETH: Number(data?.ethereum?.usd) || DEFAULT_RATES.ETH,
+            TRC: Number(data?.tron?.usd) || DEFAULT_RATES.TRC,
+            SOL: Number(data?.solana?.usd) || DEFAULT_RATES.SOL,
+            BTC: Number(data?.bitcoin?.usd) || DEFAULT_RATES.BTC,
         };
         ratesCacheTime = Date.now();
+        ratesConsecutiveFailures = 0;
     } catch (e) {
+        ratesConsecutiveFailures++;
         console.error('[Monitor] CoinGecko rates error:', e.message);
+        if (ratesConsecutiveFailures >= RATES_STALE_AFTER_FAILURES) {
+            ratesCacheTime = 0;
+            ratesCache = { ...DEFAULT_RATES };
+        }
     }
     return ratesCache;
 }
@@ -277,7 +293,6 @@ async function checkSOL(rates = ratesCache) {
     if (!pending.length) return;
 
     try {
-        // Get recent signatures
         const { data: sigData } = await axios.post('https://api.mainnet-beta.solana.com', {
             jsonrpc: '2.0', id: 1,
             method: 'getSignaturesForAddress',
@@ -285,28 +300,35 @@ async function checkSOL(rates = ratesCache) {
         }, { timeout: 10_000 });
 
         const signatures = sigData?.result || [];
-
+        const toFetch = [];
         for (const sig of signatures) {
             const hash = sig.signature;
             if (!hash || isProcessed(hash)) continue;
-            if (sig.err) continue; // skip failed txs
+            if (sig.err) continue;
+            toFetch.push(hash);
+        }
+        if (toFetch.length === 0) return;
 
-            // Fetch full transaction to read memo
-            const { data: txData } = await axios.post('https://api.mainnet-beta.solana.com', {
-                jsonrpc: '2.0', id: 1,
-                method: 'getTransaction',
-                params: [hash, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
-            }, { timeout: 10_000 });
+        // Batch getTransaction: single HTTP request with JSON-RPC batch
+        const batchBody = toFetch.map((hash, i) => ({
+            jsonrpc: '2.0',
+            id: i + 1,
+            method: 'getTransaction',
+            params: [hash, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
+        }));
+        const { data: batchResults } = await axios.post('https://api.mainnet-beta.solana.com', batchBody, { timeout: 15_000 });
+        const results = Array.isArray(batchResults) ? batchResults : [batchResults];
 
-            const txResult = txData?.result;
+        for (let i = 0; i < toFetch.length; i++) {
+            const hash = toFetch[i];
+            const res = results[i];
+            const txResult = res?.result;
             if (!txResult) continue;
 
-            // Extract memo from log messages
             const logs = txResult.meta?.logMessages || [];
             const memoLog = logs.find(l => l.includes('Program log: Memo'));
             let memoText = '';
             if (memoLog) {
-                // "Program log: Memo (len 14): DEP-1234-ABCDEF"
                 const parts = memoLog.split(': ');
                 memoText = parts[parts.length - 1] || '';
             }
@@ -314,7 +336,6 @@ async function checkSOL(rates = ratesCache) {
             const match = matchMemo(memoText, pending);
             if (!match) continue;
 
-            // Calculate SOL amount from pre/post balances
             const pre = txResult.meta?.preBalances || [];
             const post = txResult.meta?.postBalances || [];
             const keys = txResult.transaction?.message?.accountKeys || [];

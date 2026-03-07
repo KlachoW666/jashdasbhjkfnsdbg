@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Copy, CheckCircle2, Loader2, Clock } from 'lucide-react';
+import QRCode from 'react-qr-code';
 import type { Network } from '../../store/walletStore';
 import { MockAPI } from '../../api/mockServices';
 import { useTelegram } from '../../hooks/useTelegram';
@@ -135,16 +136,17 @@ export default function DepositModal({ onClose }: { onClose: () => void }) {
                             </div>
                         )}
 
-                        <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-white mb-8 w-56 h-56 mx-auto relative shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+                        <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-white mb-8 w-56 h-56 mx-auto relative shadow-[0_8px_30px_rgba(0,0,0,0.3)]" style={{ width: 224, height: 224 }}>
                             {loading || !address ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-white rounded-3xl">
                                     <Loader2 className="animate-spin text-black" size={36} />
                                 </div>
                             ) : (
-                                <img
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(address)}&margin=0`}
-                                    alt="QR Code"
-                                    className="w-full h-full object-contain rounded-xl"
+                                <QRCode
+                                    value={address}
+                                    size={200}
+                                    style={{ width: 200, height: 200 }}
+                                    aria-label="QR Code"
                                 />
                             )}
                         </div>

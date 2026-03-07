@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowRightLeft, Wallet, Coins } from 'lucide-react';
+import { ArrowRightLeft, Wallet, Coins, Ticket } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { MockAPI } from '../api/mockServices';
@@ -24,6 +24,10 @@ export default function ExchangePage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [promoCode, setPromoCode] = useState('');
+    const [promoLoading, setPromoLoading] = useState(false);
+    const [promoError, setPromoError] = useState('');
+    const [promoSuccess, setPromoSuccess] = useState('');
 
     useEffect(() => {
         MockAPI.getZyphexRate().then((data) => {
@@ -81,6 +85,32 @@ export default function ExchangePage() {
             else setError(detail ? `${t('exchange.errorNetwork')}: ${detail}` : t('exchange.errorNetwork'));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleActivatePromo = async () => {
+        const code = promoCode.trim();
+        if (!code) return;
+        setPromoError('');
+        setPromoSuccess('');
+        setPromoLoading(true);
+        try {
+            const result = await MockAPI.activatePromo(code);
+            setPromoSuccess(t('exchange.promoSuccess') + ` +${result.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX`);
+            setPromoCode('');
+            const updated = await MockAPI.getZyphexBalance();
+            setZyphexData(updated);
+        } catch (e: unknown) {
+            const err = e instanceof Error ? e : null;
+            const msg = err?.message ?? '';
+            if (msg === 'already_used') setPromoError(t('exchange.promoErrorAlreadyUsed'));
+            else if (msg === 'invalid_code') setPromoError(t('exchange.promoErrorInvalid'));
+            else if (msg === 'no_uses_left') setPromoError(t('exchange.promoErrorNoUses'));
+            else if (msg === 'supply_exhausted') setPromoError(t('exchange.promoErrorSupply'));
+            else if (msg === 'not_authenticated') setPromoError(t('exchange.errorSession'));
+            else setPromoError(msg || t('exchange.errorNetwork'));
+        } finally {
+            setPromoLoading(false);
         }
     };
 
@@ -143,6 +173,32 @@ export default function ExchangePage() {
                         {loading ? '...' : t('exchange.exchangeBtn')}
                     </button>
                 </div>
+            </div>
+
+            <div className="glass-card rounded-2xl p-5">
+                <div className="flex items-center gap-2 text-[#64748B] text-sm mb-2">
+                    <Ticket size={16} />
+                    {t('exchange.promoTitle')}
+                </div>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={promoCode}
+                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoError(''); setPromoSuccess(''); }}
+                        placeholder={t('exchange.promoPlaceholder')}
+                        className="flex-1 bg-[#161B22] border border-[#30363D] focus:border-[#00D26A]/50 rounded-xl py-2.5 px-3 text-white placeholder:text-[#8B949E] outline-none text-sm uppercase"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleActivatePromo}
+                        disabled={!promoCode.trim() || promoLoading}
+                        className="shrink-0 px-4 py-2.5 bg-[#00D26A]/20 text-[#00E676] border border-[#00D26A]/50 rounded-xl text-sm font-semibold hover:bg-[#00D26A]/30 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    >
+                        {promoLoading ? '...' : t('exchange.promoActivate')}
+                    </button>
+                </div>
+                {promoError && <p className="text-xs text-[#FF4444] mt-2">{promoError}</p>}
+                {promoSuccess && <p className="text-xs text-[#00E676] mt-2">{promoSuccess}</p>}
             </div>
 
             <div className="glass-card rounded-2xl p-5">

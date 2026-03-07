@@ -97,6 +97,7 @@ db.exec(`
     amount REAL NOT NULL,
     processed_at TEXT DEFAULT (datetime('now'))
   );
+  CREATE INDEX IF NOT EXISTS idx_pending_deposits_network_status ON pending_deposits(network, status);
 `);
 
 db.exec(`
@@ -109,6 +110,7 @@ db.exec(`
     executed_at TEXT DEFAULT (datetime('now')),
     latency_ns INTEGER
   );
+  CREATE INDEX IF NOT EXISTS idx_trades_user_executed ON trades(user_id, executed_at);
 `);
 
 db.exec(`
@@ -178,6 +180,30 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_zyphex_exchanges_user ON zyphex_exchanges(user_id);
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promo_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    amount_zyphex REAL NOT NULL,
+    max_uses INTEGER NOT NULL,
+    used_count INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_promo_codes_code ON promo_codes(code);
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS promo_activations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    promo_id INTEGER NOT NULL REFERENCES promo_codes(id),
+    amount_zyphex REAL NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, promo_id)
+  );
+  CREATE INDEX IF NOT EXISTS idx_promo_activations_user ON promo_activations(user_id);
 `);
 
 // Migration: add balance_zyphex to users if missing
@@ -575,6 +601,82 @@ export function getZyphexExportList() {
 }
 
 // ══════════════════════════════════════
+// Promo codes
+// ══════════════════════════════════════
+
+export function createPromoCode(code, amountZyphex, maxUses) {
+  const normalized = String(code).trim().toUpperCase();
+  if (!normalized) return { error: 'invalid_code' };
+  const amount = parseFloat(amountZyphex);
+  const max = parseInt(maxUses, 10);
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(max) || max < 1) return { error: 'invalid_params' };
+  try {
+    db.prepare(
+      'INSERT INTO promo_codes (code, amount_zyphex, max_uses) VALUES (?, ?, ?)'
+    ).run(normalized, amount, max);
+    const row = db.prepare('SELECT id, code, amount_zyphex, max_uses, used_count, created_at FROM promo_codes WHERE code = ?').get(normalized);
+    return {
+      promo: {
+        id: row.id,
+        code: row.code,
+        amountZyphex: row.amount_zyphex,
+        maxUses: row.max_uses,
+        usedCount: row.used_count ?? 0,
+        createdAt: row.created_at,
+      },
+    };
+  } catch (e) {
+    if (e.code === 'SQLITE_CONSTRAINT_UNIQUE') return { error: 'code_exists' };
+    throw e;
+  }
+}
+
+export function listPromoCodes() {
+  const rows = db.prepare(
+    'SELECT id, code, amount_zyphex, max_uses, used_count, created_at FROM promo_codes ORDER BY created_at DESC'
+  ).all();
+  return rows.map(r => ({
+    id: r.id,
+    code: r.code,
+    amountZyphex: r.amount_zyphex,
+    maxUses: r.max_uses,
+    usedCount: r.used_count ?? 0,
+    createdAt: r.created_at,
+  }));
+}
+
+export function activatePromo(userId, code) {
+  if (typeof userId !== 'string' || !userId.trim()) return { error: 'user_not_found' };
+  const user = db.prepare('SELECT id, balance_zyphex FROM users WHERE id = ?').get(userId);
+  if (!user) return { error: 'user_not_found' };
+  const normalized = String(code).trim().toUpperCase();
+  if (!normalized) return { error: 'invalid_code' };
+  const promo = db.prepare('SELECT id, code, amount_zyphex, max_uses, used_count FROM promo_codes WHERE code = ?').get(normalized);
+  if (!promo) return { error: 'invalid_code' };
+  const usedCount = promo.used_count ?? 0;
+  if (usedCount >= promo.max_uses) return { error: 'no_uses_left' };
+  const existing = db.prepare('SELECT 1 FROM promo_activations WHERE user_id = ? AND promo_id = ?').get(userId, promo.id);
+  if (existing) return { error: 'already_used' };
+  const remaining = getZyphexRemaining();
+  const amountZyphex = Number(promo.amount_zyphex) || 0;
+  if (amountZyphex <= 0 || remaining < amountZyphex) return { error: 'supply_exhausted' };
+  const amountRounded = Math.round(amountZyphex * 1000) / 1000;
+  const newBalanceZyphex = Math.round(((Number(user.balance_zyphex) || 0) + amountRounded) * 1000) / 1000;
+  const updateUser = db.prepare('UPDATE users SET balance_zyphex = ?, last_active = datetime(\'now\') WHERE id = ?');
+  const insertActivation = db.prepare('INSERT INTO promo_activations (user_id, promo_id, amount_zyphex) VALUES (?, ?, ?)');
+  const updatePromoUsed = db.prepare('UPDATE promo_codes SET used_count = used_count + 1 WHERE id = ?');
+  const insertExchange = db.prepare('INSERT INTO zyphex_exchanges (user_id, amount_usdt, amount_zyphex, rate_used) VALUES (?, ?, ?, ?)');
+  const run = db.transaction(() => {
+    updateUser.run(newBalanceZyphex, userId);
+    insertActivation.run(userId, promo.id, amountRounded);
+    updatePromoUsed.run(promo.id);
+    insertExchange.run(userId, 0, amountRounded, 0);
+  });
+  run();
+  return { success: true, amountZyphex: amountRounded, newBalanceZyphex };
+}
+
+// ══════════════════════════════════════
 // Wallet
 // ══════════════════════════════════════
 
@@ -683,6 +785,31 @@ export function getWithdrawalRequests(statusFilter = null) {
     status: r.status,
     createdAt: r.created_at,
     processedAt: r.processed_at || null,
+  }));
+}
+
+/** Returns withdrawal requests with userName in a single query (avoids N+1). */
+export function getWithdrawalRequestsEnriched(statusFilter = null) {
+  const stmt = db.prepare(`
+    SELECT wr.id, wr.user_id, wr.network, wr.amount, wr.address, wr.status, wr.created_at, wr.processed_at,
+           COALESCE(u.first_name, u.username, u.telegram_id, u.id) AS user_name
+    FROM withdrawal_requests wr
+    LEFT JOIN users u ON u.id = wr.user_id
+    WHERE (? IS NULL OR wr.status = ?)
+    ORDER BY wr.created_at DESC
+    LIMIT 500
+  `);
+  const rows = stmt.all(statusFilter, statusFilter);
+  return rows.map(r => ({
+    id: String(r.id),
+    userId: r.user_id,
+    network: r.network,
+    amount: r.amount,
+    address: r.address,
+    status: r.status,
+    createdAt: r.created_at,
+    processedAt: r.processed_at || null,
+    userName: r.user_name || r.user_id,
   }));
 }
 

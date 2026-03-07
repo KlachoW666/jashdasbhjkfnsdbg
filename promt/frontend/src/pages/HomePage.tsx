@@ -1,68 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Zap, Clock, Activity, Coins } from 'lucide-react';
 import { useTranslation } from '../hooks/useTranslation';
 import { useTradeStore } from '../store/tradeStore';
+import type { Trade } from '../store/tradeStore';
 import { CONFIG } from '../config';
 import { MockAPI } from '../api/mockServices';
 import { useWalletStore } from '../store/walletStore';
 import { useNavigate } from 'react-router-dom';
 
-function useListingCountdown() {
-    const [left, setLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
-    useEffect(() => {
-        const end = new Date(CONFIG.WEVOX_LISTING_DATE).getTime();
-        const tick = () => {
-            const now = Date.now();
-            const diff = Math.max(0, end - now);
-            if (diff === 0) {
-                setLeft(null);
-                return;
-            }
-            const d = Math.floor(diff / (24 * 60 * 60 * 1000));
-            const h = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-            const m = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
-            const s = Math.floor((diff % (60 * 1000)) / 1000);
-            setLeft({ d, h, m, s });
-        };
-        tick();
-        const id = setInterval(tick, 1000);
-        return () => clearInterval(id);
-    }, []);
-    return left;
-}
+const TradeRow = memo(function TradeRow({ trade, index }: { trade: Trade; index: number }) {
+  return (
+    <div
+      className={`grid grid-cols-[1fr_1fr_2fr] gap-2 px-4 py-2.5 border-b border-white/[0.04] last:border-0 text-sm transition-all duration-200 ${trade.type === 'profit'
+        ? 'bg-gradient-to-r from-[#00E676]/[0.06] to-transparent'
+        : 'bg-gradient-to-r from-[#FF5252]/[0.06] to-transparent'
+        }`}
+      style={{ animationDelay: `${index * 30}ms` }}
+    >
+      <span className={`font-mono text-xs ${trade.type === 'profit' ? 'text-[#00E676]/60' : 'text-[#FF5252]/60'}`}>
+        {trade.time}
+      </span>
+      <span className={`font-semibold ${trade.type === 'profit' ? 'text-[#00E676]' : 'text-[#FF5252]'}`}>
+        {trade.pair}
+      </span>
+      <span className={trade.type === 'profit' ? 'text-[#00E676]' : 'text-[#FF5252]'}>
+        <span className="font-mono font-bold">{trade.pnl} {trade.pair}</span>
+        <span className={`text-xs ml-1 ${trade.type === 'profit' ? 'text-[#00E676]/50' : 'text-[#FF5252]/50'}`}>
+          {trade.pnlUsd}
+        </span>
+      </span>
+    </div>
+  );
+});
 
 export default function HomePage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { trades, metrics, isTradingActive, toggleTrading, boostEndTime, activateBoost } = useTradeStore();
-    const { totalUsd, totalDeposited } = useWalletStore();
-    const countdown = useListingCountdown();
-    const [wevoxRate, setWevoxRate] = useState<number | null>(null);
+    const trades = useTradeStore((s) => s.trades);
+    const metrics = useTradeStore((s) => s.metrics);
+    const isTradingActive = useTradeStore((s) => s.isTradingActive);
+    const toggleTrading = useTradeStore((s) => s.toggleTrading);
+    const boostEndTime = useTradeStore((s) => s.boostEndTime);
+    const activateBoost = useTradeStore((s) => s.activateBoost);
+    const totalUsd = useWalletStore((s) => s.totalUsd);
+    const totalDeposited = useWalletStore((s) => s.totalDeposited);
+    const [countdown, setCountdown] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
     const [boostTimeLeft, setBoostTimeLeft] = useState<string | null>(null);
+    const [wevoxRate, setWevoxRate] = useState<number | null>(null);
 
     useEffect(() => {
         MockAPI.getZyphexRate().then((r) => setWevoxRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setWevoxRate(null));
     }, []);
 
-    // Timer for Boost
+    // Single 1s interval for listing countdown and boost timer
     useEffect(() => {
-        if (!boostEndTime) {
-            setBoostTimeLeft(null);
-            return;
-        }
-        const interval = setInterval(() => {
-            const diff = boostEndTime - Date.now();
-            if (diff <= 0) {
-                setBoostTimeLeft(null);
-                clearInterval(interval);
+        const listingEnd = new Date(CONFIG.WEVOX_LISTING_DATE).getTime();
+        const tick = () => {
+            const now = Date.now();
+            const listingDiff = Math.max(0, listingEnd - now);
+            if (listingDiff === 0) {
+                setCountdown(null);
             } else {
+                setCountdown({
+                    d: Math.floor(listingDiff / (24 * 60 * 60 * 1000)),
+                    h: Math.floor((listingDiff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)),
+                    m: Math.floor((listingDiff % (60 * 60 * 1000)) / (60 * 1000)),
+                    s: Math.floor((listingDiff % (60 * 1000)) / 1000),
+                });
+            }
+            if (boostEndTime && now < boostEndTime) {
+                const diff = boostEndTime - now;
                 const h = Math.floor(diff / (1000 * 60 * 60));
                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const s = Math.floor((diff % (1000 * 60)) / 1000);
                 setBoostTimeLeft(`${h}ч ${m}м ${s}с`);
+            } else {
+                setBoostTimeLeft(null);
             }
-        }, 1000);
-        return () => clearInterval(interval);
+        };
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
     }, [boostEndTime]);
 
     const isBoostActive = boostEndTime !== null && Date.now() < boostEndTime;
@@ -146,27 +164,7 @@ export default function HomePage() {
                         </div>
                     ) : (
                         trades.map((trade, i) => (
-                            <div
-                                key={trade.id}
-                                className={`grid grid-cols-[1fr_1fr_2fr] gap-2 px-4 py-2.5 border-b border-white/[0.04] last:border-0 text-sm transition-all duration-200 ${trade.type === 'profit'
-                                    ? 'bg-gradient-to-r from-[#00E676]/[0.06] to-transparent'
-                                    : 'bg-gradient-to-r from-[#FF5252]/[0.06] to-transparent'
-                                    }`}
-                                style={{ animationDelay: `${i * 30}ms` }}
-                            >
-                                <span className={`font-mono text-xs ${trade.type === 'profit' ? 'text-[#00E676]/60' : 'text-[#FF5252]/60'}`}>
-                                    {trade.time}
-                                </span>
-                                <span className={`font-semibold ${trade.type === 'profit' ? 'text-[#00E676]' : 'text-[#FF5252]'}`}>
-                                    {trade.pair}
-                                </span>
-                                <span className={trade.type === 'profit' ? 'text-[#00E676]' : 'text-[#FF5252]'}>
-                                    <span className="font-mono font-bold">{trade.pnl} {trade.pair}</span>
-                                    <span className={`text-xs ml-1 ${trade.type === 'profit' ? 'text-[#00E676]/50' : 'text-[#FF5252]/50'}`}>
-                                        {trade.pnlUsd}
-                                    </span>
-                                </span>
-                            </div>
+                            <TradeRow key={trade.id} trade={trade} index={i} />
                         ))
                     )}
                 </div>

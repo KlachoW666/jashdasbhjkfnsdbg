@@ -1,22 +1,23 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Layout/Header';
 import BottomNav from './components/Layout/BottomNav';
 import PageContainer from './components/Layout/PageContainer';
 import HomePage from './pages/HomePage';
-import WalletPage from './pages/WalletPage';
-import ExchangePage from './pages/ExchangePage';
-import ReferralPage from './pages/ReferralPage';
-import StatsPage from './pages/StatsPage';
-import SettingsPage from './pages/SettingsPage';
-import AuthPage from './pages/AuthPage';
-import AdminPage from './pages/AdminPage';
 import { CONFIG } from './config';
 import { useUserStore } from './store/userStore';
 import { useTradeStore, type Trade } from './store/tradeStore';
 import { useWalletStore } from './store/walletStore';
 import type { Network } from './store/walletStore';
 import { MockAPI } from './api/mockServices';
+
+const WalletPage = lazy(() => import('./pages/WalletPage').then(m => ({ default: m.default })));
+const ExchangePage = lazy(() => import('./pages/ExchangePage').then(m => ({ default: m.default })));
+const ReferralPage = lazy(() => import('./pages/ReferralPage').then(m => ({ default: m.default })));
+const StatsPage = lazy(() => import('./pages/StatsPage').then(m => ({ default: m.default })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(m => ({ default: m.default })));
+const AuthPage = lazy(() => import('./pages/AuthPage').then(m => ({ default: m.default })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.default })));
 
 const isInsideTelegram = () => typeof window !== 'undefined' && !!window.Telegram?.WebApp;
 
@@ -139,6 +140,12 @@ function useTradeEngine() {
 // App layout
 // ═══════════════════════════════════════════
 
+const PageFallback = () => (
+  <div className="flex items-center justify-center min-h-[40dvh] text-text-muted">
+    <div className="animate-pulse">Загрузка…</div>
+  </div>
+);
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col h-[100dvh] overflow-hidden bg-bg-main text-text-main" style={{ background: 'linear-gradient(180deg, #0B0F19 0%, #060A13 100%)' }}>
     <Header />
@@ -184,21 +191,23 @@ function App() {
 
   return (
     <Router basename="/miniapp">
-      <Routes>
-        <Route path="/auth" element={
-          !isAuthenticated ? <AuthPage onLogin={() => { }} /> : <Navigate to="/" />
-        } />
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/auth" element={
+            !isAuthenticated ? <AuthPage onLogin={() => { }} /> : <Navigate to="/" />
+          } />
 
-        <Route path="/" element={isAuthenticated ? <AppLayout><HomePage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/wallet" element={isAuthenticated ? <AppLayout><WalletPage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/exchange" element={isAuthenticated ? <AppLayout><ExchangePage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/referrals" element={isAuthenticated ? <AppLayout><ReferralPage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/stats" element={isAuthenticated ? <AppLayout><StatsPage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/settings" element={isAuthenticated ? <AppLayout><SettingsPage /></AppLayout> : <Navigate to="/auth" />} />
-        <Route path="/admin" element={isAuthenticated ? <AppLayout><AdminPage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/" element={isAuthenticated ? <AppLayout><HomePage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/wallet" element={isAuthenticated ? <AppLayout><WalletPage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/exchange" element={isAuthenticated ? <AppLayout><ExchangePage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/referrals" element={isAuthenticated ? <AppLayout><ReferralPage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/stats" element={isAuthenticated ? <AppLayout><StatsPage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/settings" element={isAuthenticated ? <AppLayout><SettingsPage /></AppLayout> : <Navigate to="/auth" />} />
+          <Route path="/admin" element={isAuthenticated ? <AppLayout><AdminPage /></AppLayout> : <Navigate to="/auth" />} />
 
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

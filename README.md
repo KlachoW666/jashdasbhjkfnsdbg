@@ -35,6 +35,10 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 
 **Важно:** В GitHub у репозитория должна быть ветка **main** (install.sh делает `git pull` / `git reset --hard origin/main`). Если используете другую ветку, измените в install.sh `origin/main` на нужную.
 
+**Проверка API после деплоя:** из корня репозитория выполните `cd promt/backend && npm run check-api`. Для продакшена задайте `BASE_URL=https://wevox.ru` (или ваш домен). При необходимости укажите `USER_ID` и `ADMIN_USER_ID` для проверки эндпоинтов с авторизацией.
+
+**CI / автоматическая проверка:** в репозитории настроен GitHub Actions workflow `.github/workflows/api-check.yml`: при push/PR в `main` поднимается backend, выполняется сценарий проверки (health, zyphex/rate; при заданных `USER_ID`/`ADMIN_USER_ID` — также wallet и users). Скрипт `promt/backend/scripts/check-api.mjs` выходит с кодом 1 при ошибке (удобно для CI). Запуск тех же проверок локально: `cd promt/backend && npm test` (или `npm run check-api`).
+
 ## Локальная разработка
 
 - **Backend:** `cd promt/backend && npm install && npm run dev` (порт 3001 по умолчанию)

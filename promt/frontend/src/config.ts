@@ -4,8 +4,8 @@ const env = typeof import.meta !== 'undefined' && (import.meta as any).env;
 
 export const CONFIG = {
     API_BASE: (env?.VITE_API_URL as string) || '',
-    /** Telegram bot username (no @) for Mini App and referral link. Must match BotFather exactly (e.g. WEVOXAUTOTRAIDINGBOT). */
-    BOT_USERNAME: (env?.VITE_BOT_USERNAME as string) || 'WEVOXAUTOTRAIDINGBOT',
+    /** Telegram bot username (no @) for Mini App and referral link. Must match BotFather exactly (e.g. wevoautobot). */
+    BOT_USERNAME: (env?.VITE_BOT_USERNAME as string) || 'wevoautobot',
     /** Support contact Telegram username without @; link for «Поддержка» button. */
     SUPPORT_USERNAME: (env?.VITE_SUPPORT_USERNAME as string) || '',
     /** Site domain for display or links (e.g. wevox.ru). */

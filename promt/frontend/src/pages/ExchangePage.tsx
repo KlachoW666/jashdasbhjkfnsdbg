@@ -29,7 +29,7 @@ export default function ExchangePage() {
     const [promoError, setPromoError] = useState('');
     const [promoSuccess, setPromoSuccess] = useState('');
 
-    useEffect(() => {
+    const refreshRateAndPool = () => {
         MockAPI.getZyphexRate().then((data) => {
             setRate(data.rate ?? 100);
             if (data.remaining != null && data.totalSupply != null) {
@@ -38,13 +38,27 @@ export default function ExchangePage() {
                 setPool(null);
             }
         }).catch(() => setRate(100));
+    };
+
+    useEffect(() => {
+        refreshRateAndPool();
         MockAPI.getZyphexBalance().then(setZyphexData).catch(() => setZyphexData(null));
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            refreshRateAndPool();
+            MockAPI.getZyphexBalance().then(setZyphexData).catch(() => {});
+        }, 60_000);
+        return () => clearInterval(interval);
     }, []);
 
     const amount = parseFloat(amountUsdt) || 0;
     const amountZyphexPreview = amount > 0 ? Math.round(amount * rate * 1000) / 1000 : 0;
     const pricePerCoinUsd = rate > 0 ? 1 / rate : 0;
     const canExchange = amount >= 1 && amount <= totalUsd && !loading && rate > 0;
+    const balanceZyphex = zyphexData?.balanceZyphex ?? 0;
+    const balanceUsdAtRate = rate > 0 ? balanceZyphex * pricePerCoinUsd : 0;
 
     const handleExchange = async () => {
         if (!canExchange) return;
@@ -98,8 +112,12 @@ export default function ExchangePage() {
             const result = await MockAPI.activatePromo(code);
             setPromoSuccess(t('exchange.promoSuccess') + ` +${result.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX`);
             setPromoCode('');
-            const updated = await MockAPI.getZyphexBalance();
+            const [updated, rateData] = await Promise.all([MockAPI.getZyphexBalance(), MockAPI.getZyphexRate()]);
             setZyphexData(updated);
+            setRate(rateData.rate ?? 100);
+            if (rateData.remaining != null && rateData.totalSupply != null) {
+                setPool({ remaining: rateData.remaining, totalSupply: rateData.totalSupply, sold: rateData.sold ?? 0 });
+            }
         } catch (e: unknown) {
             const err = e instanceof Error ? e : null;
             const msg = err?.message ?? '';
@@ -206,21 +224,37 @@ export default function ExchangePage() {
                     <Coins size={18} className="text-[#00E676]" />
                     {t('exchange.yourZyphex')}
                 </div>
-                <div className="text-2xl font-mono font-bold text-[#00E676] mb-4">
-                    {(zyphexData?.balanceZyphex ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX
+                <div className="text-2xl font-mono font-bold text-[#00E676] mb-1">
+                    {balanceZyphex.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX
+                </div>
+                <div className="text-xs text-[#8B949E] mb-4">
+                    ≈ ${balanceUsdAtRate >= 0.01 ? balanceUsdAtRate.toFixed(2) : balanceUsdAtRate.toFixed(4)} USDT ({t('exchange.balanceInUsdAtRate')})
                 </div>
                 <div className="text-xs text-[#8B949E] mb-4">
                     Всего обменяно: ${(zyphexData?.totalExchangedUsdt ?? 0).toFixed(2)} USDT → {(zyphexData?.totalExchangedZyphex ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX
+                    {rate > 0 && (zyphexData?.totalExchangedZyphex ?? 0) > 0 && (
+                        <span className="block mt-0.5 text-[#64748B]">
+                            ≈ ${((zyphexData?.totalExchangedZyphex ?? 0) * pricePerCoinUsd).toFixed(2)} USDT ({t('exchange.balanceInUsdAtRate')})
+                        </span>
+                    )}
                 </div>
                 <h4 className="text-xs font-bold text-[#8B949E] uppercase tracking-wider mb-2">{t('exchange.history')}</h4>
                 {zyphexData?.history && zyphexData.history.length > 0 ? (
                     <ul className="space-y-2 max-h-40 overflow-y-auto thin-scrollbar">
-                        {zyphexData.history.map((h, i) => (
-                            <li key={i} className="flex justify-between text-xs bg-[#0D1117] rounded-lg px-3 py-2">
-                                <span className="text-[#8B949E]">{h.createdAt.slice(0, 16).replace('T', ' ')}</span>
-                                <span className="text-white">${h.amountUsdt.toFixed(2)} → <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span></span>
-                            </li>
-                        ))}
+                        {zyphexData.history.map((h, i) => {
+                            const usdAtRate = rate > 0 ? h.amountZyphex * pricePerCoinUsd : 0;
+                            const usdLabel = usdAtRate >= 0.01 ? usdAtRate.toFixed(2) : usdAtRate.toFixed(4);
+                            return (
+                                <li key={i} className="flex justify-between text-xs bg-[#0D1117] rounded-lg px-3 py-2">
+                                    <span className="text-[#8B949E]">{h.createdAt.slice(0, 16).replace('T', ' ')}</span>
+                                    <span className="text-white">
+                                        {h.amountUsdt > 0 ? `$${h.amountUsdt.toFixed(2)} → ` : ''}
+                                        <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span>
+                                        {rate > 0 && <span className="text-[#8B949E] ml-1">(≈ ${usdLabel})</span>}
+                                    </span>
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
                     <p className="text-xs text-[#8B949E]">{t('exchange.noHistory')}</p>

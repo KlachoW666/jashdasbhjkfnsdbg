@@ -32,6 +32,11 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
    - `BACKEND_PORT=3001` — порт API
 
 4. В BotFather укажите URL Mini App: **https://wevox.ru/miniapp**
+   - В Telegram откройте @BotFather → **My Bots** → выберите бота (например @wevoautobot) → **Bot Settings** → **Menu Button** → **Configure menu button** → введите URL: `https://wevox.ru/miniapp` (без слэша в конце). Без этого при переходе по ссылке вида `t.me/wevoautobot/app?startapp=...` будет ошибка **«Веб-приложение не найдено»**.
+
+**Если при переходе по ссылке пишет «Веб-приложение не найдено»:**
+- Проверьте в BotFather, что у бота в **Menu Button** указан именно ваш домен: `https://wevox.ru/miniapp` (или ваш домен вместо wevox.ru).
+- Откройте в браузере `https://wevox.ru/miniapp` — должна открываться страница приложения (не 404). Если 404 — пересоберите frontend на сервере (`cd /var/www/miniapp/promt/frontend && npm run build`) и проверьте Nginx.
 
 **Бот и рассылки:** создайте файл `promt/backend/.env` и добавьте строку:
    ```

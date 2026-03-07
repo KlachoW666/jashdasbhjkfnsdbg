@@ -622,13 +622,20 @@ app.post('/api/admin/broadcast', (req, res) => {
     if (!message || typeof message !== 'string' || !audience) {
       return res.status(400).json({ error: 'message and audience required' });
     }
+    const token = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
+    if (!token) {
+      return res.status(400).json({
+        error: 'telegram_token_required',
+        message: 'TELEGRAM_BOT_TOKEN не задан. Добавьте в promt/backend/.env и перезапустите backend.',
+      });
+    }
     const telegramIds = getTelegramIdsForAudience(audience);
     const count = telegramIds.length;
     const { id } = createBroadcast(adminUserId, message.trim(), audience, count);
     res.json({ id: String(id), recipientCount: count });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'server_error' });
+    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
   }
 });
 
@@ -700,10 +707,13 @@ app.post('/api/admin/broadcast/:id/send', async (req, res) => {
     if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
     const { id } = req.params;
     const result = await sendBroadcastViaTelegram(id);
+    if (result.error) {
+      return res.status(400).json({ error: 'broadcast_send_failed', message: result.error, sent: result.sent, failed: result.failed });
+    }
     res.json(result);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'server_error' });
+    res.status(500).json({ error: 'server_error', message: String(e.message || e) });
   }
 });
 

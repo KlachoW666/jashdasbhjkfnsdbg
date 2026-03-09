@@ -215,6 +215,9 @@ if (!userCols.includes('balance_zyphex')) {
 // Default ZYPHEX rate (1 USDT = 100 ZYPHEX) and total supply
 db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run('zyphex_rate_per_usdt', '100');
 db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run('zyphex_total_supply', '1000000');
+const LISTING_DATE_KEY = 'wevox_listing_date';
+const LISTING_DATE_DEFAULT = '2026-04-05T00:00:00.000Z';
+db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run(LISTING_DATE_KEY, LISTING_DATE_DEFAULT);
 
 // ══════════════════════════════════════
 // Helpers
@@ -519,6 +522,23 @@ export function setZyphexRate(rate) {
   if (!Number.isFinite(r) || r <= 0) return false;
   db.prepare('INSERT INTO app_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
     .run(ZYPHEX_RATE_KEY, String(r));
+  return true;
+}
+
+export function getListingDate() {
+  const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get(LISTING_DATE_KEY);
+  const v = row?.value;
+  if (typeof v === 'string' && v.trim()) return v.trim();
+  return LISTING_DATE_DEFAULT;
+}
+
+export function setListingDate(isoString) {
+  const s = String(isoString).trim();
+  if (!s) return false;
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return false;
+  db.prepare('INSERT INTO app_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+    .run(LISTING_DATE_KEY, s);
   return true;
 }
 

@@ -29,6 +29,7 @@ export const translations = {
         settings: {
             account: 'Аккаунт',
             userId: 'ID ПОЛЬЗОВАТЕЛЯ',
+            userLabel: 'Пользователь',
             changePin: 'Изменить PIN',
             botMode: 'Режим бота',
             safeMode: 'Безопасный',
@@ -250,6 +251,7 @@ export const translations = {
         settings: {
             account: 'Account',
             userId: 'USER ID',
+            userLabel: 'User',
             changePin: 'Change PIN',
             botMode: 'Bot Mode',
             safeMode: 'Safe',

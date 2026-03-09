@@ -20,6 +20,7 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
     const [selectedUser, setSelectedUser] = useState<MockAppUser | null>(null);
     const [loading, setLoading] = useState(false);
     const [listError, setListError] = useState(false);
+    const [listError403, setListError403] = useState(false);
     type PromptType = 'balance' | 'bonus' | 'notes' | null;
     const [promptState, setPromptState] = useState<{ type: PromptType; title: string; placeholder: string; current: string } | null>(null);
     const [promptInput, setPromptInput] = useState('');
@@ -28,9 +29,14 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
         if (isOpen && adminUserId) {
             setLoading(true);
             setListError(false);
+            setListError403(false);
             fetchUsersApi(adminUserId)
-                .then((list) => { setUsers(list); setListError(false); })
-                .catch(() => { setUsers([]); setListError(true); })
+                .then((list) => { setUsers(list); setListError(false); setListError403(false); })
+                .catch((err: unknown) => {
+                    setUsers([]);
+                    setListError(true);
+                    setListError403((err as { status?: number })?.status === 403);
+                })
                 .finally(() => setLoading(false));
         }
     }, [isOpen, adminUserId, setUsers]);
@@ -41,6 +47,21 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
         if (onlyRegistered && u.registered === false) return false;
         return u.name.toLowerCase().includes(searchTerm.toLowerCase()) || u.id.includes(searchTerm);
     });
+
+    const refetchList = () => {
+        if (!adminUserId) return;
+        setLoading(true);
+        setListError(false);
+        setListError403(false);
+        fetchUsersApi(adminUserId)
+            .then((list) => { setUsers(list); setListError(false); setListError403(false); })
+            .catch((err: unknown) => {
+                setUsers([]);
+                setListError(true);
+                setListError403((err as { status?: number })?.status === 403);
+            })
+            .finally(() => setLoading(false));
+    };
 
     const refetchAndRefresh = async (id: string) => {
         if (!adminUserId) return;
@@ -160,13 +181,6 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
         }
     };
 
-    const refetchList = () => {
-        if (!adminUserId) return;
-        setLoading(true);
-        setListError(false);
-        fetchUsersApi(adminUserId).then((list) => { setUsers(list); setListError(false); }).catch(() => { setUsers([]); setListError(true); }).finally(() => setLoading(false));
-    };
-
     return (
         <div className="fixed inset-0 z-[100] bg-[#0A0E16] flex flex-col animate-in slide-in-from-bottom-full duration-300" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
             {/* Header */}
@@ -230,7 +244,9 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
                                 <div className="text-center text-[#8B949E] py-10 text-sm">Загрузка списка…</div>
                             ) : listError ? (
                                 <div className="text-center py-10 px-4">
-                                    <p className="text-[#94A3B8] text-sm mb-3">Не удалось загрузить список. Проверьте интернет.</p>
+                                    <p className="text-[#94A3B8] text-sm mb-3">
+                                        {listError403 ? 'Нет прав администратора. Убедитесь, что ваш Telegram ID в списке админов на сервере.' : 'Не удалось загрузить список. Проверьте интернет или нажмите «Повторить».'}
+                                    </p>
                                     <button type="button" onClick={refetchList} className="btn-primary px-5 py-2.5">Повторить</button>
                                 </div>
                             ) : (

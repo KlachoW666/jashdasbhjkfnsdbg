@@ -1,4 +1,4 @@
-import { Shield, Scale, Rocket, Globe, RefreshCcw, LogOut, Loader2, ShieldAlert } from 'lucide-react';
+import { Shield, Scale, Rocket, Globe, LogOut, Loader2, ShieldAlert } from 'lucide-react';
 import { useUserStore } from '../store/userStore';
 import { MockAPI } from '../api/mockServices';
 import { useTelegram } from '../hooks/useTelegram';
@@ -13,12 +13,13 @@ const MODE_ACCENTS = {
 };
 
 export default function SettingsPage() {
-    const { botMode, setBotMode, language, setLanguage, userId, isAdmin } = useUserStore();
-    const { hapticFeedback, showConfirm, showAlert } = useTelegram();
+    const { botMode, setBotMode, language, setLanguage, isAdmin } = useUserStore();
+    const { hapticFeedback, showConfirm, user } = useTelegram();
     const { t } = useTranslation();
-    const [resetting, setResetting] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const navigate = useNavigate();
+
+    const displayUser = user?.username ? `@${user.username}` : (user?.first_name || '—');
 
     const handleModeChange = (mode: 'safe' | 'balanced' | 'aggressive') => {
         setBotMode(mode);
@@ -28,34 +29,6 @@ export default function SettingsPage() {
     const handleLangChange = (lang: 'ru' | 'en') => {
         setLanguage(lang);
         hapticFeedback?.selectionChanged();
-    };
-
-    const handleReset = () => {
-        hapticFeedback?.impactOccurred('medium');
-        const msg = t('settings.resetConfirm');
-
-        if (showConfirm) {
-            showConfirm(msg, async (isOk) => {
-                if (isOk) performReset();
-            });
-        } else {
-            if (window.confirm(msg)) performReset();
-        }
-    };
-
-    const performReset = async () => {
-        setResetting(true);
-        const success = await MockAPI.resetBalance(useUserStore.getState().pin || '');
-        setResetting(false);
-
-        if (success) {
-            hapticFeedback?.notificationOccurred('success');
-            const msg = t('settings.resetSuccess');
-            if (showAlert) showAlert(msg);
-            else alert(msg);
-        } else {
-            hapticFeedback?.notificationOccurred('error');
-        }
     };
 
     const handleLogout = async () => {
@@ -84,8 +57,8 @@ export default function SettingsPage() {
                 <h3 className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-3">{t('settings.account')}</h3>
                 <div className="bento-card rounded-[14px] p-4 flex justify-between items-center">
                     <div>
-                        <div className="text-[#64748B] text-xs font-bold uppercase mb-1">{t('settings.userId')}</div>
-                        <div className="font-mono text-[#F1F5F9] text-sm">{userId}</div>
+                        <div className="text-[#64748B] text-xs font-bold uppercase mb-1">{t('settings.userLabel')}</div>
+                        <div className="font-mono text-[#F1F5F9] text-sm">{displayUser}</div>
                     </div>
                     <button className="text-[#00E676] text-sm font-semibold hover:underline transition-colors">{t('settings.changePin')}</button>
                 </div>
@@ -131,22 +104,13 @@ export default function SettingsPage() {
                 </div>
             </section>
 
-            {/* Danger Zone */}
+            {/* Danger Zone — только выход */}
             <section>
                 <h3 className="text-[11px] font-bold text-[#FF5252] uppercase tracking-wider mb-3">{t('settings.dangerZone')}</h3>
-                <div className="bento-card rounded-[14px] p-4 border-[#FF5252]/10 space-y-3">
-                    <div className="text-xs text-[#64748B] leading-relaxed">{t('settings.resetDesc')}</div>
-                    <button
-                        onClick={handleReset}
-                        disabled={resetting || loggingOut}
-                        className="btn-secondary w-full flex items-center justify-center gap-2 border-[#00E676]/30 text-[#00E676] py-3.5 disabled:opacity-40"
-                    >
-                        {resetting ? <Loader2 className="animate-spin" size={16} /> : <RefreshCcw size={16} />}
-                        {t('settings.resetBtn')}
-                    </button>
+                <div className="bento-card rounded-[14px] p-4 border-[#FF5252]/10">
                     <button
                         onClick={handleLogout}
-                        disabled={resetting || loggingOut}
+                        disabled={loggingOut}
                         className="btn-secondary w-full flex items-center justify-center gap-2 border-[#FF5252]/30 text-[#FF5252] py-3.5 disabled:opacity-40"
                     >
                         {loggingOut ? <Loader2 className="animate-spin" size={16} /> : <LogOut size={16} />}

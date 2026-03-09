@@ -52,6 +52,8 @@ import {
   createPromoCode,
   listPromoCodes,
   activatePromo,
+  getListingDate,
+  setListingDate,
   dbPath,
 } from './db.js';
 import { startMonitoring } from './depositMonitor.js';
@@ -73,6 +75,17 @@ const isAdmin = (userId) => {
 // Health check (for Nginx / pm2; no auth)
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true });
+});
+
+// Public: listing date (countdown on home/landing)
+app.get('/api/settings/listing-date', (_req, res) => {
+  try {
+    const listingDate = getListingDate();
+    res.json({ listingDate });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
 });
 
 // ══════════════════════════════════════
@@ -769,6 +782,33 @@ app.put('/api/admin/zyphex/supply', (req, res) => {
     if (!Number.isFinite(supply) || supply < 0) return res.status(400).json({ error: 'invalid_supply' });
     setZyphexTotalSupply(supply);
     res.json({ ok: true, supply: getZyphexTotalSupply() });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.get('/api/admin/settings/listing-date', (req, res) => {
+  try {
+    const adminUserId = req.query.userId || req.headers['x-user-id'];
+    if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
+    const listingDate = getListingDate();
+    res.json({ listingDate });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'server_error' });
+  }
+});
+
+app.put('/api/admin/settings/listing-date', (req, res) => {
+  try {
+    const adminUserId = req.query.userId || req.headers['x-user-id'];
+    if (!adminUserId || !isAdmin(adminUserId)) return res.status(403).json({ error: 'forbidden' });
+    const listingDate = req.body.listingDate;
+    if (typeof listingDate !== 'string' || !listingDate.trim()) return res.status(400).json({ error: 'invalid_listing_date' });
+    const ok = setListingDate(listingDate.trim());
+    if (!ok) return res.status(400).json({ error: 'invalid_listing_date', message: 'Некорректная дата (ISO 8601)' });
+    res.json({ ok: true, listingDate: getListingDate() });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'server_error' });

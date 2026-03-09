@@ -60,6 +60,16 @@ export async function setZyphexSupply(adminUserId: string, supply: number): Prom
   await api.put(`/api/admin/zyphex/supply?userId=${encodeURIComponent(adminUserId)}`, { supply });
 }
 
+export async function getListingDate(adminUserId: string): Promise<string> {
+  const res = await api.get<{ listingDate: string }>(`/api/admin/settings/listing-date?userId=${encodeURIComponent(adminUserId)}`);
+  return res.listingDate || '2026-04-05T00:00:00.000Z';
+}
+
+export async function setListingDate(adminUserId: string, listingDate: string): Promise<string> {
+  const res = await api.put<{ listingDate: string }>(`/api/admin/settings/listing-date?userId=${encodeURIComponent(adminUserId)}`, { listingDate });
+  return res.listingDate;
+}
+
 export async function downloadZyphexExportCsv(adminUserId: string): Promise<void> {
   const url = `${base}/api/admin/zyphex/export?userId=${encodeURIComponent(adminUserId)}&format=csv`;
   const res = await fetch(url);

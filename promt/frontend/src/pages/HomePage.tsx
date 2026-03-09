@@ -48,13 +48,19 @@ export default function HomePage() {
     const [countdown, setCountdown] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
     const [boostTimeLeft, setBoostTimeLeft] = useState<string | null>(null);
     const [wevoxRate, setWevoxRate] = useState<number | null>(null);
+    const [listingDate, setListingDate] = useState(CONFIG.WEVOX_LISTING_DATE);
+
+    useEffect(() => {
+        const base = CONFIG.API_BASE || (typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '');
+        fetch(`${base}/api/settings/listing-date`).then((r) => r.json()).then((d: { listingDate?: string }) => { if (d.listingDate) setListingDate(d.listingDate); }).catch(() => {});
+    }, []);
 
     useEffect(() => {
         MockAPI.getZyphexRate().then((r) => setWevoxRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setWevoxRate(null));
     }, []);
 
     useEffect(() => {
-        const listingEnd = new Date(CONFIG.WEVOX_LISTING_DATE).getTime();
+        const listingEnd = new Date(listingDate).getTime();
         const tick = () => {
             const now = Date.now();
             const listingDiff = Math.max(0, listingEnd - now);
@@ -81,7 +87,7 @@ export default function HomePage() {
         tick();
         const id = setInterval(tick, 1000);
         return () => clearInterval(id);
-    }, [boostEndTime]);
+    }, [boostEndTime, listingDate]);
 
     const isBoostActive = boostEndTime !== null && Date.now() < boostEndTime;
 

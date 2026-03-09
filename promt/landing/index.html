@@ -7,87 +7,122 @@
   <title>WEVOX Auto — Авто-фарминг USDT в Telegram</title>
   <meta name="description"
     content="Торговый бот 24/7. Пополняй USDT — бот торгует за тебя. Листинг WEVOX. BSC и TRC." />
+  <meta name="theme-color" content="#060A10" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
     rel="stylesheet" />
 </head>
 
 <body>
-  <div class="bg-grid" aria-hidden="true"></div>
-  <div class="glow glow-1" aria-hidden="true"></div>
-  <div class="glow glow-2" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="aurora aurora-1" aria-hidden="true"></div>
+  <div class="aurora aurora-2" aria-hidden="true"></div>
+  <div class="aurora aurora-3" aria-hidden="true"></div>
+  <div class="grid-bg" aria-hidden="true"></div>
 
   <main class="landing" id="main">
     <header class="header">
-      <img src="logo.svg" alt="WEVOX" class="logo-img" width="48" height="48" />
+      <div class="logo-wrap">
+        <img src="logo.svg" alt="WEVOX" class="logo-img" width="52" height="52" />
+        <span class="logo-glow"></span>
+      </div>
       <div class="brand">
-        <h1 class="brand-name">WEVOX <span>Auto</span></h1>
-        <p class="brand-tagline">Авто-трейдинг 24/7</p>
+        <h1 class="brand-name">WEVOX <span class="brand-accent">Auto</span></h1>
+        <p class="brand-tagline">Авто-трейдинг 24/7 в Telegram</p>
       </div>
     </header>
 
-    <div class="hero-wrapper">
-      <section class="hero-content">
-        <h2 class="hero-title">Умный авто-трейдинг 24/7</h2>
-        <p class="hero-desc">Мгновенные депозиты USDT. Автоматическое извлечение прибыли. Вывод средств в любое время.
-        </p>
+    <section class="hero">
+      <p class="hero-badge">Telegram Mini App · 2026</p>
+      <h2 class="hero-title">
+        <span class="hero-title-line">Умный авто-трейдинг</span>
+        <span class="hero-title-line hero-title-accent">без ваших усилий</span>
+      </h2>
+      <p class="hero-desc">
+        Депозит USDT — бот торгует круглосуточно. Автоматическое начисление прибыли. Вывод в один тап.
+      </p>
 
-        <ul class="bullets">
-          <li><strong>Полная автоматизация:</strong> Депозит → Торговля → Профит</li>
-          <li><strong>Ранний доступ:</strong> Обменивай USDT на токены WEVOX до листинга</li>
-          <li><strong>Удобство:</strong> Работает прямо в Telegram (Web App)</li>
-        </ul>
-      </section>
+      <ul class="hero-features">
+        <li class="hero-feature">
+          <span class="hero-feature-icon" aria-hidden="true"></span>
+          <span><strong>Полная автоматизация</strong> — депозит, торговля, профит</span>
+        </li>
+        <li class="hero-feature">
+          <span class="hero-feature-icon" aria-hidden="true"></span>
+          <span><strong>Ранний доступ</strong> — обмен USDT на WEVOX до листинга</span>
+        </li>
+        <li class="hero-feature">
+          <span class="hero-feature-icon" aria-hidden="true"></span>
+          <span><strong>В Telegram</strong> — без установки, работает в мессенджере</span>
+        </li>
+      </ul>
+    </section>
 
-      <section class="hero-visual">
-        <div class="trading-terminal">
-          <div class="terminal-header">
-            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
-            <span class="terminal-title">Live Trading Feed</span>
+    <section class="terminal-section">
+      <div class="terminal-card">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
           </div>
-          <div class="terminal-body" id="live-feed"></div>
-          <div class="terminal-overlay"></div>
+          <span class="terminal-title">Live Trading</span>
         </div>
-      </section>
-    </div>
+        <div class="terminal-body" id="live-feed"></div>
+        <div class="terminal-fade"></div>
+      </div>
+    </section>
 
-    <div class="row row-cards">
-      <section class="stats">
-        <div class="stat"><span class="stat-value">24/7</span><span class="stat-label">Торговля</span></div>
-        <div class="stat"><span class="stat-value">USDT</span><span class="stat-label">BSC·TRC</span></div>
-        <div class="stat"><span class="stat-value">Referral</span><span class="stat-label">Доход</span></div>
-      </section>
-      <section class="listing" data-listing-date="2026-04-05T00:00:00.000Z">
-        <p class="listing-label">До листинга WEVOX</p>
-        <div class="listing-countdown" id="countdown">
-          <span><var id="cd-d">0</var><em>д</em></span>
-          <span><var id="cd-h">0</var><em>ч</em></span>
-          <span><var id="cd-m">0</var><em>м</em></span>
-          <span><var id="cd-s">0</var><em>с</em></span>
+    <section class="bento">
+      <div class="bento-card bento-stats">
+        <div class="stat-item">
+          <span class="stat-value">24/7</span>
+          <span class="stat-label">Торговля</span>
         </div>
-        <p class="listing-note">Получай дроп за сделки</p>
-      </section>
-    </div>
+        <div class="stat-item">
+          <span class="stat-value">USDT</span>
+          <span class="stat-label">BSC · TRC · TON</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">Referral</span>
+          <span class="stat-label">Доход с друзей</span>
+        </div>
+      </div>
 
-    <!-- Bullets integrated into hero -->
+      <div class="bento-card bento-countdown" data-listing-date="2026-04-05T00:00:00.000Z">
+        <p class="countdown-label">До листинга WEVOX</p>
+        <div class="countdown" id="countdown">
+          <span class="countdown-part"><var id="cd-d">0</var><em>д</em></span>
+          <span class="countdown-part"><var id="cd-h">0</var><em>ч</em></span>
+          <span class="countdown-part"><var id="cd-m">0</var><em>м</em></span>
+          <span class="countdown-part"><var id="cd-s">0</var><em>с</em></span>
+        </div>
+        <p class="countdown-note">Дроп за сделки до листинга</p>
+      </div>
+    </section>
 
-    <section class="cta-block">
+    <section class="cta-section">
       <a href="https://t.me/wevoautobot/app" class="cta" target="_blank" rel="noopener noreferrer">
+        <span class="cta-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+        </span>
         Открыть в Telegram
       </a>
     </section>
 
-    <footer class="footer">WEVOX Auto · Криптовалюты — волатильный актив</footer>
+    <footer class="footer">
+      <p class="footer-text">WEVOX Auto · Криптовалюты — волатильный актив. Используйте на свой риск.</p>
+    </footer>
   </main>
 
   <script>
     (function () {
       // Countdown
-      var el = document.querySelector('.listing[data-listing-date]');
+      var el = document.querySelector('.bento-countdown[data-listing-date]');
       if (el) {
         var dateStr = el.getAttribute('data-listing-date');
         var end = new Date(dateStr).getTime();
@@ -96,37 +131,31 @@
           var now = Date.now(), diff = Math.max(0, end - now);
           if (diff === 0) { d.textContent = '0'; h.textContent = '0'; m.textContent = '0'; s.textContent = '0'; return; }
           d.textContent = Math.floor(diff / 86400000);
-          h.textContent = Math.floor((diff % 86400000) / 3600000);
-          m.textContent = Math.floor((diff % 3600000) / 60000);
-          s.textContent = Math.floor((diff % 60000) / 1000);
+          h.textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+          m.textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+          s.textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
         }
         tick();
         setInterval(tick, 1000);
       }
 
-      // Live Feed Simulator
+      // Live Feed
       var feed = document.getElementById('live-feed');
       if (feed) {
-        var pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'SUI/USDT', 'BNB/USDT', 'LINK/USDT', 'ARB/USDT'];
+        var pairs = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'SUI/USDT', 'BNB/USDT', 'LINK/USDT', 'ARB/USDT', 'DOGE/USDT'];
         function addTrade() {
           var pair = pairs[Math.floor(Math.random() * pairs.length)];
           var profit = (Math.random() * 5 + 0.1).toFixed(2);
-          var isWin = Math.random() > 0.1; // 90% mock winrate
-
+          var isWin = Math.random() > 0.12;
           var div = document.createElement('div');
-          div.className = 'trade-item slide-in';
+          div.className = 'trade-row' + (isWin ? ' win' : ' loss');
           var time = new Date().toLocaleTimeString('ru-RU', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          div.innerHTML = `
-            <span class="trade-time">${time}</span>
-            <span class="trade-pair">${pair}</span>
-            <span class="trade-pnl ${isWin ? 'win' : 'loss'}">${isWin ? '+' : '-'}$${profit}</span>
-          `;
-
+          div.innerHTML = '<span class="trade-time">' + time + '</span><span class="trade-pair">' + pair + '</span><span class="trade-pnl">' + (isWin ? '+' : '-') + '$' + profit + '</span>';
           feed.prepend(div);
-          if (feed.children.length > 6) feed.removeChild(feed.lastChild);
-          setTimeout(addTrade, Math.random() * 1500 + 500);
+          if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+          setTimeout(addTrade, Math.random() * 1200 + 600);
         }
-        for (var i = 0; i < 4; i++) setTimeout(addTrade, i * 400);
+        for (var i = 0; i < 5; i++) setTimeout(addTrade, i * 350);
       }
     })();
   </script>

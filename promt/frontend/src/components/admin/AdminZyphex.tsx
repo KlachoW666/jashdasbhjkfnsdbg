@@ -1,7 +1,24 @@
 import { useState, useEffect } from 'react';
-import { Coins, Save, Download, Database, Ticket } from 'lucide-react';
+import { Coins, Save, Download, Database, Ticket, Calendar } from 'lucide-react';
 import { useUserStore } from '../../store/userStore';
-import { getZyphexRate, setZyphexRate, getZyphexSupply, setZyphexSupply, downloadZyphexExportCsv, listPromoCodes, createPromoCode, type PromoCodeItem } from '../../api/adminApi';
+import { getZyphexRate, setZyphexRate, getZyphexSupply, setZyphexSupply, getListingDate, setListingDate, downloadZyphexExportCsv, listPromoCodes, createPromoCode, type PromoCodeItem } from '../../api/adminApi';
+
+function toDatetimeLocal(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day}T${h}:${min}`;
+}
+
+function fromDatetimeLocal(local: string): string {
+    if (!local) return '';
+    const d = new Date(local);
+    return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+}
 
 export default function AdminZyphex() {
     const { userId: adminUserId } = useUserStore();
@@ -19,6 +36,17 @@ export default function AdminZyphex() {
     const [promoAmount, setPromoAmount] = useState('');
     const [promoMaxUses, setPromoMaxUses] = useState('');
     const [promoCreating, setPromoCreating] = useState(false);
+    const [listingDateLocal, setListingDateLocal] = useState('');
+    const [savedListingDate, setSavedListingDate] = useState('');
+    const [loadingListing, setLoadingListing] = useState(false);
+
+    useEffect(() => {
+        if (!adminUserId) return;
+        getListingDate(adminUserId).then((date) => {
+            setSavedListingDate(date);
+            setListingDateLocal(toDatetimeLocal(date));
+        }).catch(() => {});
+    }, [adminUserId]);
 
     useEffect(() => {
         if (!adminUserId) return;
@@ -128,8 +156,54 @@ export default function AdminZyphex() {
         }
     };
 
+    const handleSaveListingDate = async () => {
+        const iso = fromDatetimeLocal(listingDateLocal);
+        if (!iso) {
+            setMessage('Укажите дату и время');
+            return;
+        }
+        if (!adminUserId) return;
+        setLoadingListing(true);
+        setMessage('');
+        try {
+            const updated = await setListingDate(adminUserId, iso);
+            setSavedListingDate(updated);
+            setListingDateLocal(toDatetimeLocal(updated));
+            setMessage('Дата листинга сохранена');
+        } catch {
+            setMessage('Ошибка сохранения даты');
+        } finally {
+            setLoadingListing(false);
+        }
+    };
+
     return (
         <div className="space-y-4">
+            <div className="bento-card rounded-xl p-5">
+                <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
+                    <Calendar size={20} />
+                    Дата листинга WEVOX
+                </div>
+                <p className="text-xs text-[#8B949E] mb-2">Время до листинга отображается на главной и на лендинге. Формат: дата и время (ваша локальная зона).</p>
+                <div className="flex flex-wrap gap-2 mb-2">
+                    <input
+                        type="datetime-local"
+                        value={listingDateLocal}
+                        onChange={(e) => setListingDateLocal(e.target.value)}
+                        className="flex-1 min-w-[200px] bg-[#111820] border border-white/[0.08] rounded-xl py-2.5 px-4 text-white text-sm"
+                    />
+                    <button
+                        onClick={handleSaveListingDate}
+                        disabled={loadingListing}
+                        className="flex items-center gap-2 bg-[#00D26A] text-black rounded-xl py-2.5 px-4 font-bold text-sm disabled:opacity-50"
+                    >
+                        <Save size={16} />
+                        Сохранить
+                    </button>
+                </div>
+                <p className="text-[10px] text-[#8B949E]">Текущая дата листинга: <span className="text-[#00E676] font-mono">{savedListingDate ? new Date(savedListingDate).toLocaleString('ru-RU') : '—'}</span></p>
+            </div>
+
             <div className="bento-card rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Coins size={20} />

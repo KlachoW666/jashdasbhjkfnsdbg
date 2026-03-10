@@ -110,7 +110,7 @@ export default function ExchangePage() {
         setPromoLoading(true);
         try {
             const result = await MockAPI.activatePromo(code);
-            setPromoSuccess(t('exchange.promoSuccess') + ` +${result.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX`);
+            setPromoSuccess(t('exchange.promoSuccess') + ` +${result.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX`);
             setPromoCode('');
             const [updated, rateData] = await Promise.all([MockAPI.getZyphexBalance(), MockAPI.getZyphexRate()]);
             setZyphexData(updated);
@@ -142,7 +142,7 @@ export default function ExchangePage() {
                         {t('exchange.title')}
                     </div>
                     <div className="text-xs text-[#8B949E] mb-2">
-                        {t('exchange.rateLabel')}: {t('exchange.rateDesc')} <span className="font-bold text-[#00E676]">{rate}</span> WEVOX
+                        {t('exchange.rateLabel')}: {t('exchange.rateDesc')} <span className="font-bold text-[#00E676]">{rate}</span> ZYPHEX
                     </div>
                     <div className="text-xs text-[#8B949E] mb-2">
                         {t('exchange.pricePerCoin')}: <span className="font-bold text-[#00E676]">${pricePerCoinUsd >= 0.0001 ? pricePerCoinUsd.toFixed(pricePerCoinUsd < 1 ? 4 : 2) : pricePerCoinUsd.toFixed(6)}</span>
@@ -178,7 +178,7 @@ export default function ExchangePage() {
                     </div>
                     {amount > 0 && (
                         <div className="text-sm text-[#8B949E] mb-4">
-                            {t('exchange.youGet')}: <span className="font-bold text-[#00E676]">{amountZyphexPreview.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX</span>
+                            {t('exchange.youGet')}: <span className="font-bold text-[#00E676]">{amountZyphexPreview.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ZYPHEX</span>
                         </div>
                     )}
                     {error && <div className="text-sm text-[#FF4444] mb-2">{error}</div>}
@@ -225,13 +225,13 @@ export default function ExchangePage() {
                     {t('exchange.yourZyphex')}
                 </div>
                 <div className="text-2xl font-mono font-bold text-[#00E676] mb-1">
-                    {balanceZyphex.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} WEVOX
+                    {balanceZyphex.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ZYPHEX
                 </div>
                 <div className="text-xs text-[#8B949E] mb-4">
                     ≈ ${balanceUsdAtRate >= 0.01 ? balanceUsdAtRate.toFixed(2) : balanceUsdAtRate.toFixed(4)} USDT ({t('exchange.balanceInUsdAtRate')})
                 </div>
                 <div className="text-xs text-[#8B949E] mb-4">
-                    Всего обменяно: ${(zyphexData?.totalExchangedUsdt ?? 0).toFixed(2)} USDT → {(zyphexData?.totalExchangedZyphex ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX
+                    Всего обменяно: ${(zyphexData?.totalExchangedUsdt ?? 0).toFixed(2)} USDT → {(zyphexData?.totalExchangedZyphex ?? 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX
                     {rate > 0 && (zyphexData?.totalExchangedZyphex ?? 0) > 0 && (
                         <span className="block mt-0.5 text-[#64748B]">
                             ≈ ${((zyphexData?.totalExchangedZyphex ?? 0) * pricePerCoinUsd).toFixed(2)} USDT ({t('exchange.balanceInUsdAtRate')})
@@ -249,7 +249,7 @@ export default function ExchangePage() {
                                     <span className="text-[#8B949E]">{h.createdAt.slice(0, 16).replace('T', ' ')}</span>
                                     <span className="text-white">
                                         {h.amountUsdt > 0 ? `$${h.amountUsdt.toFixed(2)} → ` : ''}
-                                        <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span>
+                                        <span className="text-[#00E676]">{h.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX</span>
                                         {rate > 0 && <span className="text-[#8B949E] ml-1">(≈ ${usdLabel})</span>}
                                     </span>
                                 </li>

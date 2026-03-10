@@ -105,7 +105,7 @@ export const useWalletStore = create<WalletState>()(
             }))
         }),
         {
-            name: 'wevox-wallet-storage',
+            name: 'zyphex-wallet-storage',
         }
     )
 );

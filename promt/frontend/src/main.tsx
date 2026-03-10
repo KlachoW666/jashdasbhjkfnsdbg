@@ -12,7 +12,7 @@ window.__APP_LOADED__ = true
 // referredBy is NOT persisted so it's only set when user actually opens the app with startapp= in URL.
 const START_PARAM_REGEX = /^[\w-]{1,512}$/
 
-const REF_STORAGE_KEY = 'wevox_ref'
+const REF_STORAGE_KEY = 'zyphex_ref'
 
 function initTelegramStartParam() {
   const startParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param

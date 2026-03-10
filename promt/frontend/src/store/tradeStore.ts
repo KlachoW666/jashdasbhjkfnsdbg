@@ -114,7 +114,7 @@ export const useTradeStore = create<TradeState>()(
             activateBoost: () => set({ boostEndTime: Date.now() + 3 * 3600 * 1000 }),
         }),
         {
-            name: 'wevox-trade-storage',
+            name: 'zyphex-trade-storage',
             partialize: (state) => ({
                 // Persist stats but NOT trades or metrics (those are session-only)
                 stats: state.stats,

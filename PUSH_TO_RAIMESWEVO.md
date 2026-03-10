@@ -32,7 +32,7 @@ git branch -M main
 # Закоммитьте все изменения, если ещё не закоммичены:
 git add -A
 git status
-git commit -m "WEVOX: full project for install.sh (wevox.ru, Ubuntu 24.04)"
+git commit -m "Zyphex: full project for install.sh (zyphex.ru, Ubuntu 24.04)"
 
 # Отправка в raimeswevo (замена истории репозитория):
 git push raimeswevo main --force
@@ -58,4 +58,4 @@ git push origin main --force
 sudo ./install.sh
 ```
 
-(скрипт клонирует `https://github.com/KlachoW666/raimeswevo.git` в `/var/www/miniapp` и развернёт WEVOX).
+(скрипт клонирует `https://github.com/KlachoW666/raimeswevo.git` в `/var/www/miniapp` и развернёт Zyphex).

@@ -58,12 +58,12 @@ BACKEND_PORT="${BACKEND_PORT:-3001}"
 echo "[4b/6] Setting up Backend API (port $BACKEND_PORT)..."
 cd "$APP_DIR/promt/backend"
 npm install
-if pm2 describe wevox-api >/dev/null 2>&1; then
-    echo "Restarting backend (wevox-api)..."
-    pm2 delete wevox-api 2>/dev/null || true
+if pm2 describe zyphex-api >/dev/null 2>&1; then
+    echo "Restarting backend (zyphex-api)..."
+    pm2 delete zyphex-api 2>/dev/null || true
 fi
-echo "Starting backend (wevox-api) on port $BACKEND_PORT — PM2: restart on crash and on boot."
-PORT=$BACKEND_PORT pm2 start server.js --name wevox-api --cwd "$APP_DIR/promt/backend" \
+echo "Starting backend (zyphex-api) on port $BACKEND_PORT — PM2: restart on crash and on boot."
+PORT=$BACKEND_PORT pm2 start server.js --name zyphex-api --cwd "$APP_DIR/promt/backend" \
     --max-restarts 999999 \
     --restart-delay 3000 \
     --exp-backoff-restart-delay 100
@@ -76,9 +76,9 @@ if command -v pm2 >/dev/null 2>&1; then
     (pm2 startup systemd -u "$PM2_USER" --hp "$PM2_HOME" 2>&1 | grep -oE 'sudo[^;]+' | head -1 | bash) 2>/dev/null || true
 fi
 
-# 5. Configure Nginx (HTTP + HTTPS) for domain WEVOX.RU
+# 5. Configure Nginx (HTTP + HTTPS) for domain ZYPHEX.RU
 echo "[5/6] Configuring Nginx..."
-DOMAIN="${DOMAIN:-wevox.ru}"
+DOMAIN="${DOMAIN:-zyphex.ru}"
 SERVER_IP="${SERVER_IP:-91.219.151.56}"
 BACKEND_PORT="${BACKEND_PORT:-3001}"
 SSL_DIR="/etc/nginx/ssl/miniapp"
@@ -112,7 +112,7 @@ SSL_CIPHERS="ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECD
 
 NGINX_CONF="/etc/nginx/sites-available/miniapp"
 cat > "$NGINX_CONF" << NGINXEOF
-# Redirect IP to canonical domain (WEVOX.RU)
+# Redirect IP to canonical domain (ZYPHEX.RU)
 server {
     listen 80;
     listen [::]:80;
@@ -198,7 +198,7 @@ systemctl enable nginx 2>/dev/null || true
 # Optional: Let's Encrypt (run if DNS A-record points $DOMAIN to this server)
 if command -v certbot >/dev/null 2>&1; then
     echo "Trying Let's Encrypt for $DOMAIN..."
-    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "${CERTBOT_EMAIL:-admin@wevox.ru}" 2>/dev/null || true
+    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "${CERTBOT_EMAIL:-admin@zyphex.ru}" 2>/dev/null || true
     certbot --nginx -d "www.$DOMAIN" --non-interactive 2>/dev/null || true
 fi
 
@@ -211,7 +211,7 @@ STAPLING=""
     ssl_stapling_verify on;
     ssl_trusted_certificate /etc/letsencrypt/live/$DOMAIN/chain.pem;"
 cat > "$NGINX_CONF" << NGINXEOF2
-# Redirect IP to canonical domain (WEVOX.RU)
+# Redirect IP to canonical domain (ZYPHEX.RU)
 server {
     listen 80;
     listen [::]:80;
@@ -299,7 +299,7 @@ echo "======================================"
 FAIL=0
 if nginx -t 2>/dev/null; then echo "  [OK] Nginx config"; else echo "  [FAIL] Nginx config"; FAIL=1; fi
 if systemctl is-active --quiet nginx 2>/dev/null; then echo "  [OK] Nginx running"; else echo "  [FAIL] Nginx not running"; FAIL=1; fi
-if pm2 describe wevox-api >/dev/null 2>&1; then echo "  [OK] Backend (wevox-api)"; else echo "  [FAIL] Backend not in pm2"; FAIL=1; fi
+if pm2 describe zyphex-api >/dev/null 2>&1; then echo "  [OK] Backend (zyphex-api)"; else echo "  [FAIL] Backend not in pm2"; FAIL=1; fi
 if curl -sf --max-time 3 "http://127.0.0.1:$BACKEND_PORT/api/health" >/dev/null 2>&1; then echo "  [OK] API health"; else echo "  [FAIL] API health check"; FAIL=1; fi
 if [ -f "$APP_DIR/promt/frontend/dist/index.html" ]; then echo "  [OK] Frontend built"; else echo "  [FAIL] Frontend dist missing"; FAIL=1; fi
 if [ -f "$APP_DIR/promt/landing/index.html" ]; then echo "  [OK] Landing present"; else echo "  [FAIL] Landing missing"; FAIL=1; fi
@@ -313,7 +313,7 @@ echo "Landing:   https://$DOMAIN/"
 echo "Backend:   pm2 port $BACKEND_PORT, Nginx /api/"
 echo ""
 if [ "$FAIL" -eq 1 ]; then
-  echo "Some checks failed. Run: pm2 list; pm2 logs wevox-api; systemctl status nginx"
+  echo "Some checks failed. Run: pm2 list; pm2 logs zyphex-api; systemctl status nginx"
   echo ""
 fi
 if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then

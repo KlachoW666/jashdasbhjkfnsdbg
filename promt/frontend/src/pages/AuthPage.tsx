@@ -184,12 +184,12 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     <div className="w-full text-center mt-6">
                         <div className="mb-8 flex justify-center">
                             <div className="text-3xl font-bold tracking-tight">
-                                <span className="text-white">WEVOX</span><span className="text-[#00E676]"> Auto</span>
+                                <span className="text-white">ZYPHEX</span><span className="text-[#00E676]"> Auto</span>
                             </div>
                         </div>
 
                         <h1 className="text-2xl font-bold mb-3 leading-tight text-white">
-                            Добро пожаловать в WEVOX Auto
+                            Добро пожаловать в Zyphex Auto
                         </h1>
                         <p className="text-[#64748B] text-sm mb-8 px-2">
                             Создайте аккаунт для начала торговли.
@@ -347,7 +347,7 @@ export default function AuthPage({ onLogin }: { onLogin: () => void }) {
                     </div>
                 )}
             </div>
-            {/* Added WEVOX Tagline */}
+            {/* Added Zyphex Tagline */}
             {step === 'welcome' && (
                 <div className="absolute bottom-6 left-0 right-0 text-center text-[11px] text-[#64748B]">
                     @{CONFIG.BOT_USERNAME}

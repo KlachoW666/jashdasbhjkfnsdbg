@@ -215,7 +215,7 @@ if (!userCols.includes('balance_zyphex')) {
 // Default ZYPHEX rate (1 USDT = 100 ZYPHEX) and total supply
 db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run('zyphex_rate_per_usdt', '100');
 db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run('zyphex_total_supply', '1000000');
-const LISTING_DATE_KEY = 'wevox_listing_date';
+const LISTING_DATE_KEY = 'zyphex_listing_date';
 const LISTING_DATE_DEFAULT = '2026-04-05T00:00:00.000Z';
 db.prepare('INSERT OR IGNORE INTO app_settings (key, value) VALUES (?, ?)').run(LISTING_DATE_KEY, LISTING_DATE_DEFAULT);
 

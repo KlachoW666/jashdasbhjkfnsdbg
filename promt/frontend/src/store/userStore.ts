@@ -49,7 +49,7 @@ export const useUserStore = create<UserState>()(
             setReferredBy: (param) => set({ referredBy: param }),
         }),
         {
-            name: 'wevox-user-storage',
+            name: 'zyphex-user-storage',
             partialize: (state) => ({
                 isAuthenticated: state.isAuthenticated,
                 pin: state.pin,

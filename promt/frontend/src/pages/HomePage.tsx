@@ -47,8 +47,8 @@ export default function HomePage() {
     const totalDeposited = useWalletStore((s) => s.totalDeposited);
     const [countdown, setCountdown] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
     const [boostTimeLeft, setBoostTimeLeft] = useState<string | null>(null);
-    const [wevoxRate, setWevoxRate] = useState<number | null>(null);
-    const [listingDate, setListingDate] = useState(CONFIG.WEVOX_LISTING_DATE);
+    const [zyphexRate, setZyphexRate] = useState<number | null>(null);
+    const [listingDate, setListingDate] = useState(CONFIG.ZYPHEX_LISTING_DATE);
 
     useEffect(() => {
         const base = CONFIG.API_BASE || (typeof window !== 'undefined' && window.location?.origin ? window.location.origin : '');
@@ -56,7 +56,7 @@ export default function HomePage() {
     }, []);
 
     useEffect(() => {
-        MockAPI.getZyphexRate().then((r) => setWevoxRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setWevoxRate(null));
+        MockAPI.getZyphexRate().then((r) => setZyphexRate(typeof r === 'object' && r && 'rate' in r ? r.rate : null)).catch(() => setZyphexRate(null));
     }, []);
 
     useEffect(() => {
@@ -221,7 +221,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* WEVOX + listing countdown */}
+            {/* Zyphex + listing countdown */}
             <section>
                 <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-[10px] bg-[#00E676]/10 flex items-center justify-center">
@@ -231,9 +231,9 @@ export default function HomePage() {
                 </div>
                 <div className="bento-card p-5 space-y-4">
                     <p className="text-sm text-[#94A3B8] leading-relaxed">{t('home.wevoxDesc')}</p>
-                    {wevoxRate != null && wevoxRate > 0 && (
+                    {zyphexRate != null && zyphexRate > 0 && (
                         <p className="text-sm text-[#00E676] font-medium">
-                            {t('home.wevoxPriceLabel')}: 1 WEVOX = ${(1 / wevoxRate).toFixed((1 / wevoxRate) < 1 ? 4 : 2)}
+                            {t('home.wevoxPriceLabel')}: 1 ZYPHEX = ${(1 / zyphexRate).toFixed((1 / zyphexRate) < 1 ? 4 : 2)}
                         </p>
                     )}
                     {countdown !== null && (

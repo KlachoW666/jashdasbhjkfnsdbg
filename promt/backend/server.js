@@ -867,7 +867,7 @@ app.get('/api/admin/zyphex/export', (req, res) => {
       const header = 'user_id,telegram_id,name,balance_zyphex,total_exchanged_usdt,total_exchanged_zyphex';
       const rows = list.map(r => `${r.userId},${r.telegramId},"${String(r.name).replace(/"/g, '""')}",${r.balanceZyphex},${r.totalExchangedUsdt},${r.totalExchangedZyphex}`);
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename=wevox_airdrop_export.csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=zyphex_airdrop_export.csv');
       return res.send('\uFEFF' + header + '\n' + rows.join('\n'));
     }
     res.json({ list });
@@ -879,19 +879,19 @@ app.get('/api/admin/zyphex/export', (req, res) => {
 
 // ══════════════════════════════════════
 // Telegram Bot: webhook for /start and other commands
-// Set webhook: https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://wevox.ru/api/telegram-webhook
+// Set webhook: https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://zyphex.ru/api/telegram-webhook
 // ══════════════════════════════════════
 
-const WELCOME_MESSAGE = `🟢 <b>WEVOX Auto</b> — это мини-приложение для автоматической торговли в Telegram.
+const WELCOME_MESSAGE = `🟢 <b>Zyphex Auto</b> — это мини-приложение для автоматической торговли в Telegram.
 
 <b>Что это?</b>
 • Симуляция трейдинга с виртуальным балансом в USDT
-• Заработанный USDT можно обменять на токены <b>WEVOX</b> в разделе «Обмен»
+• Заработанный USDT можно обменять на токены <b>ZYPHEX</b> в разделе «Обмен»
 • Реферальная программа: приглашайте друзей по ссылке и получайте бонус к дневному доходу
-• Промокоды: вводите коды в разделе «Обмен» и получайте WEVOX бесплатно
+• Промокоды: вводите коды в разделе «Обмен» и получайте ZYPHEX бесплатно
 
 <b>Как начать?</b>
-Нажмите кнопку ниже — откроется приложение. При первом входе создайте PIN-код (4–6 цифр). После этого вам будет доступен баланс, сделки и обмен на WEVOX.
+Нажмите кнопку ниже — откроется приложение. При первом входе создайте PIN-код (4–6 цифр). После этого вам будет доступен баланс, сделки и обмен на ZYPHEX.
 
 <b>Безопасность:</b>
 Все данные хранятся на защищённом сервере. Вывод средств (если включён) возможен только на привязанные кошельки.
@@ -925,7 +925,7 @@ app.post('/api/telegram-webhook', (req, res) => {
 
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
-  console.log(`WEVOX API listening on port ${PORT}`);
+  console.log(`Zyphex API listening on port ${PORT}`);
   console.log(`Database: ${dbPath} (settings persist across restarts; set DB_PATH for custom path)`);
   startMonitoring();
 });

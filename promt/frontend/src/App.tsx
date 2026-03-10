@@ -307,7 +307,7 @@ function App() {
     if (typeof startParam === 'string' && START_PARAM_REGEX.test(startParam)) {
       const code = startParam.trim().toUpperCase();
       useUserStore.getState().setReferredBy(code);
-      try { sessionStorage.setItem('wevox_ref', code); } catch { /* ignore */ }
+      try { sessionStorage.setItem('zyphex_ref', code); } catch { /* ignore */ }
     }
   }, []);
 
@@ -320,7 +320,7 @@ function App() {
     try {
       const exists = await MockAPI.checkRegistered();
       if (!exists) {
-        console.warn('[WEVOX] Session invalid — user not in DB, logging out');
+        console.warn('[Zyphex] Session invalid — user not in DB, logging out');
         useUserStore.getState().logout();
       }
     } catch {

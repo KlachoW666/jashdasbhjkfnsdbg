@@ -19,7 +19,7 @@ export default function Header() {
         >
             <div className="flex items-center gap-2">
                 <span className="font-bold text-[#F1F5F9] text-[17px] tracking-tight">
-                    WEVOX <span className="text-[#00E676]">Auto</span>
+                    ZYPHEX <span className="text-[#00E676]">Auto</span>
                 </span>
             </div>
 

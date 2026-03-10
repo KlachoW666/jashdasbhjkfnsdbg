@@ -1,7 +1,7 @@
-# WEVOX Auto — Telegram Mini App
+# Zyphex Auto — Telegram Mini App
 
-Telegram Web App для авто-трейдинга: пополнение USDT, обмен на WEVOX, рефералы.  
-Домен: **https://wevox.ru** (или WEVOX.RU).
+Telegram Web App для авто-трейдинга: пополнение USDT, обмен на ZYPHEX, рефералы.  
+Домен: **https://zyphex.ru** (или ZYPHEX.RU).
 
 ## Структура
 
@@ -27,24 +27,24 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
    - Настраивает Nginx для домена и HTTPS
 
 3. Переменные (при необходимости):
-   - `DOMAIN=wevox.ru` — домен (по умолчанию wevox.ru)
+   - `DOMAIN=zyphex.ru` — домен (по умолчанию zyphex.ru)
    - `SERVER_IP=91.219.151.56` — IP сервера (по умолчанию)
    - `BACKEND_PORT=3001` — порт API
 
-4. В BotFather укажите URL Mini App: **https://wevox.ru/miniapp**
-   - В Telegram откройте @BotFather → **My Bots** → выберите бота (например @wevoautobot) → **Bot Settings** → **Menu Button** → **Configure menu button** → введите URL: `https://wevox.ru/miniapp` (без слэша в конце). Без этого при переходе по ссылке вида `t.me/wevoautobot/app?startapp=...` будет ошибка **«Веб-приложение не найдено»**.
+4. В BotFather укажите URL Mini App: **https://zyphex.ru/miniapp**
+   - В Telegram откройте @BotFather → **My Bots** → выберите бота (например @wevoautobot) → **Bot Settings** → **Menu Button** → **Configure menu button** → введите URL: `https://zyphex.ru/miniapp` (без слэша в конце). Без этого при переходе по ссылке вида `t.me/wevoautobot/app?startapp=...` будет ошибка **«Веб-приложение не найдено»**.
 
 **Если при переходе по ссылке пишет «Веб-приложение не найдено»:**
-- Проверьте в BotFather, что у бота в **Menu Button** указан именно ваш домен: `https://wevox.ru/miniapp` (или ваш домен вместо wevox.ru).
-- Откройте в браузере `https://wevox.ru/miniapp` — должна открываться страница приложения (не 404). Если 404 — пересоберите frontend на сервере (`cd /var/www/miniapp/promt/frontend && npm run build`) и проверьте Nginx.
+- Проверьте в BotFather, что у бота в **Menu Button** указан именно ваш домен: `https://zyphex.ru/miniapp` (или ваш домен вместо zyphex.ru).
+- Откройте в браузере `https://zyphex.ru/miniapp` — должна открываться страница приложения (не 404). Если 404 — пересоберите frontend на сервере (`cd /var/www/miniapp/promt/frontend && npm run build`) и проверьте Nginx.
 
 **Почему «Подключение не защищено» / ERR_SSL_VERSION_OR_CIPHER_MISMATCH — и как пофиксить**
 
-Если в Telegram видите «wevox.ru использует неподдерживаемый протокол» или «Загрузка…» не проходит — соединение блокируется из‑за SSL. Сделайте **на сервере**:
+Если в Telegram видите «zyphex.ru использует неподдерживаемый протокол» или «Загрузка…» не проходит — соединение блокируется из‑за SSL. Сделайте **на сервере**:
 
 1. **Сертификат Let's Encrypt** (обязательно; самоподписанный Telegram не принимает):
    ```bash
-   sudo certbot --nginx -d wevox.ru -d www.wevox.ru --agree-tos -m admin@wevox.ru
+   sudo certbot --nginx -d zyphex.ru -d www.zyphex.ru --agree-tos -m admin@zyphex.ru
    ```
    DNS для домена должен указывать на IP сервера.
 
@@ -54,7 +54,7 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
    ```
    Скрипт перезапишет Nginx с `ssl_protocols TLSv1.2 TLSv1.3` и современными `ssl_ciphers`, перезагрузит Nginx. Приложение и база не пострадают.
 
-3. **Проверка:** откройте в браузере `https://wevox.ru/miniapp/` — должна загрузиться приложение. Затем откройте то же в Telegram — соединение должно установиться, «Загрузка…» сменится на интерфейс приложения.
+3. **Проверка:** откройте в браузере `https://zyphex.ru/miniapp/` — должна загрузиться приложение. Затем откройте то же в Telegram — соединение должно установиться, «Загрузка…» сменится на интерфейс приложения.
 
 Вручную (если не хотите запускать install.sh): в `/etc/nginx/sites-available/miniapp` в каждом блоке `listen 443 ssl` должны быть строки:
 - `ssl_protocols TLSv1.2 TLSv1.3;`
@@ -66,19 +66,19 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
    ```
    TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
    ```
-   (токен из @BotFather). После перезапуска backend (pm2 restart wevox-api) рассылки из админки будут работать. Если рассылка выдаёт ошибку — в ответе API приходит поле `errorDetail` (например: «bot can't initiate conversation» значит пользователь ещё не нажал /start у бота).
+   (токен из @BotFather). После перезапуска backend (pm2 restart zyphex-api) рассылки из админки будут работать. Если рассылка выдаёт ошибку — в ответе API приходит поле `errorDetail` (например: «bot can't initiate conversation» значит пользователь ещё не нажал /start у бота).
 
 **Команда /start у бота:** чтобы при нажатии /start бот присылал приветствие, нужно один раз настроить webhook (подставьте свой домен и токен):
    ```
-   curl "https://api.telegram.org/bot<ВАШ_ТОКЕН>/setWebhook?url=https://wevox.ru/api/telegram-webhook"
+   curl "https://api.telegram.org/bot<ВАШ_ТОКЕН>/setWebhook?url=https://zyphex.ru/api/telegram-webhook"
    ```
    Убедитесь, что в Nginx проксируется не только `/api/`, но и именно этот путь; при необходимости добавьте в конфиг location для `/api/telegram-webhook`. После этого при отправке /start бот будет отвечать информацией о приложении.
 
 **Важно:** В репозитории [raimeswevo](https://github.com/KlachoW666/raimeswevo) используется ветка **master**. install.sh клонирует и обновляет именно её (`origin/master`).
 
-**Backend всегда включён (PM2):** API запускается через PM2 с автоперезапуском при сбое и автозапуском при загрузке сервера. Проверить: `pm2 list`, логи: `pm2 logs wevox-api`, перезапуск вручную: `pm2 restart wevox-api`.
+**Backend всегда включён (PM2):** API запускается через PM2 с автоперезапуском при сбое и автозапуском при загрузке сервера. Проверить: `pm2 list`, логи: `pm2 logs zyphex-api`, перезапуск вручную: `pm2 restart zyphex-api`.
 
-**Проверка API после деплоя:** из корня репозитория выполните `cd promt/backend && npm run check-api`. Для продакшена задайте `BASE_URL=https://wevox.ru` (или ваш домен). При необходимости укажите `USER_ID` и `ADMIN_USER_ID` для проверки эндпоинтов с авторизацией.
+**Проверка API после деплоя:** из корня репозитория выполните `cd promt/backend && npm run check-api`. Для продакшена задайте `BASE_URL=https://zyphex.ru` (или ваш домен). При необходимости укажите `USER_ID` и `ADMIN_USER_ID` для проверки эндпоинтов с авторизацией.
 
 **CI / автоматическая проверка:** в репозитории настроен GitHub Actions workflow `.github/workflows/api-check.yml`: при push/PR в `main` поднимается backend, выполняется сценарий проверки (health, zyphex/rate; при заданных `USER_ID`/`ADMIN_USER_ID` — также wallet и users). Скрипт `promt/backend/scripts/check-api.mjs` выходит с кодом 1 при ошибке (удобно для CI). Запуск тех же проверок локально: `cd promt/backend && npm test` (или `npm run check-api`).
 
@@ -86,10 +86,10 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 
 Проверьте по шагам **на сервере**:
 
-1. **Backend запущен:** `pm2 list` — должен быть процесс `wevox-api`. Если нет: `cd /var/www/miniapp/promt/backend && PORT=3001 pm2 start server.js --name wevox-api` и `pm2 save`.
-2. **API отвечает:** `curl -s https://wevox.ru/api/health` — ответ `{"ok":true}`. Если ошибка или таймаут — проверьте Nginx (location /api/ проксирует на порт 3001) и что backend слушает 3001.
-3. **Frontend собран и раздаётся:** `ls /var/www/miniapp/promt/frontend/dist/index.html` и `ls /var/www/miniapp/promt/frontend/dist/assets/` — файлы должны быть. Откройте в браузере `https://wevox.ru/miniapp/` — должна открыться приложение, не 404. Если 404: `cd /var/www/miniapp/promt/frontend && npm run build`, затем перезагрузите Nginx.
-4. **Сборка с явным доменом (если с телефона не грузится):** на сервере пересоберите frontend с переменной окружения: `cd /var/www/miniapp/promt/frontend && VITE_APP_URL=https://wevox.ru npm run build`. Затем перезапустите Nginx при необходимости.
+1. **Backend запущен:** `pm2 list` — должен быть процесс `zyphex-api`. Если нет: `cd /var/www/miniapp/promt/backend && PORT=3001 pm2 start server.js --name zyphex-api` и `pm2 save`.
+2. **API отвечает:** `curl -s https://zyphex.ru/api/health` — ответ `{"ok":true}`. Если ошибка или таймаут — проверьте Nginx (location /api/ проксирует на порт 3001) и что backend слушает 3001.
+3. **Frontend собран и раздаётся:** `ls /var/www/miniapp/promt/frontend/dist/index.html` и `ls /var/www/miniapp/promt/frontend/dist/assets/` — файлы должны быть. Откройте в браузере `https://zyphex.ru/miniapp/` — должна открыться приложение, не 404. Если 404: `cd /var/www/miniapp/promt/frontend && npm run build`, затем перезагрузите Nginx.
+4. **Сборка с явным доменом (если с телефона не грузится):** на сервере пересоберите frontend с переменной окружения: `cd /var/www/miniapp/promt/frontend && VITE_APP_URL=https://zyphex.ru npm run build`. Затем перезапустите Nginx при необходимости.
 
 В Telegram: если видите «Сервер недоступен» — backend не отвечает (шаги 1–2). Если бесконечная «Загрузка…» — не открылся JS или API (шаги 2–4).
 

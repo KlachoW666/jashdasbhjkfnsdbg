@@ -97,7 +97,7 @@ export default function AdminZyphex() {
             return;
         }
         if (num < sold) {
-            setMessage(`Объём пула не может быть меньше уже выданного (${sold.toLocaleString()} WEVOX)`);
+            setMessage(`Объём пула не может быть меньше уже выданного (${sold.toLocaleString()} ZYPHEX)`);
             return;
         }
         if (!adminUserId) return;
@@ -133,7 +133,7 @@ export default function AdminZyphex() {
         const amount = parseFloat(promoAmount);
         const maxUses = parseInt(promoMaxUses, 10);
         if (!code || !Number.isFinite(amount) || amount <= 0 || !Number.isFinite(maxUses) || maxUses < 1) {
-            setMessage('Заполните код, количество WEVOX (положительное) и макс. использований (≥ 1)');
+            setMessage('Заполните код, количество ZYPHEX (положительное) и макс. использований (≥ 1)');
             return;
         }
         if (!adminUserId) return;
@@ -182,7 +182,7 @@ export default function AdminZyphex() {
             <div className="bento-card rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Calendar size={20} />
-                    Дата листинга WEVOX
+                    Дата листинга ZYPHEX
                 </div>
                 <p className="text-xs text-[#8B949E] mb-2">Время до листинга отображается на главной и на лендинге. Формат: дата и время (ваша локальная зона).</p>
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -208,9 +208,9 @@ export default function AdminZyphex() {
             <div className="bento-card rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Coins size={20} />
-                    Курс WEVOX
+                    Курс ZYPHEX
                 </div>
-                <p className="text-xs text-[#8B949E] mb-2">Начальный курс (при полном пуле): WEVOX за 1 USDT. Фактический курс растёт по мере уменьшения остатка пула.</p>
+                <p className="text-xs text-[#8B949E] mb-2">Начальный курс (при полном пуле): ZYPHEX за 1 USDT. Фактический курс растёт по мере уменьшения остатка пула.</p>
                 <div className="flex gap-2 mb-2">
                     <input
                         type="number"
@@ -230,15 +230,15 @@ export default function AdminZyphex() {
                         Сохранить
                     </button>
                 </div>
-                <p className="text-[10px] text-[#8B949E]">Начальный курс при полном пуле: 1 USDT = <span className="text-[#00E676] font-bold">{savedRate}</span> WEVOX</p>
+                <p className="text-[10px] text-[#8B949E]">Начальный курс при полном пуле: 1 USDT = <span className="text-[#00E676] font-bold">{savedRate}</span> ZYPHEX</p>
             </div>
 
             <div className="bento-card rounded-xl p-5">
                 <div className="flex items-center gap-2 text-[#00E676] font-bold mb-4">
                     <Database size={20} />
-                    Объём пула WEVOX
+                    Объём пула ZYPHEX
                 </div>
-                <p className="text-xs text-[#8B949E] mb-2">Всего в пуле (всего доступно к выдаче). Уже выдано: <span className="text-[#00E676] font-mono">{sold.toLocaleString()}</span> WEVOX.</p>
+                <p className="text-xs text-[#8B949E] mb-2">Всего в пуле (всего доступно к выдаче). Уже выдано: <span className="text-[#00E676] font-mono">{sold.toLocaleString()}</span> ZYPHEX.</p>
                 <div className="flex gap-2 mb-2">
                     <input
                         type="number"
@@ -258,12 +258,12 @@ export default function AdminZyphex() {
                         Сохранить
                     </button>
                 </div>
-                <p className="text-[10px] text-[#8B949E]">Текущий объём пула: <span className="text-[#00E676] font-bold font-mono">{savedSupply.toLocaleString()}</span> WEVOX</p>
+                <p className="text-[10px] text-[#8B949E]">Текущий объём пула: <span className="text-[#00E676] font-bold font-mono">{savedSupply.toLocaleString()}</span> ZYPHEX</p>
             </div>
 
             <div className="bento-card rounded-xl p-5">
                 <div className="font-bold text-white mb-2">Экспорт для airdrop</div>
-                <p className="text-xs text-[#8B949E] mb-3">Скачать CSV со списком пользователей и балансами WEVOX (user_id, telegram_id, name, balance_wevox, total_exchanged_usdt, total_exchanged_wevox).</p>
+                <p className="text-xs text-[#8B949E] mb-3">Скачать CSV со списком пользователей и балансами ZYPHEX (user_id, telegram_id, name, balance_zyphex, total_exchanged_usdt, total_exchanged_zyphex).</p>
                 <button
                     type="button"
                     onClick={handleExport}
@@ -280,7 +280,7 @@ export default function AdminZyphex() {
                     <Ticket size={20} />
                     Промокоды
                 </div>
-                <p className="text-xs text-[#8B949E] mb-3">Создайте промокод: при активации пользователь получит указанное количество WEVOX (один раз на пользователя). Список использований ограничен.</p>
+                <p className="text-xs text-[#8B949E] mb-3">Создайте промокод: при активации пользователь получит указанное количество ZYPHEX (один раз на пользователя). Список использований ограничен.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
                     <input
                         type="text"
@@ -295,7 +295,7 @@ export default function AdminZyphex() {
                         step={1}
                         value={promoAmount}
                         onChange={(e) => setPromoAmount(e.target.value)}
-                        placeholder="WEVOX"
+                        placeholder="ZYPHEX"
                         className="bg-[#111820] border border-white/[0.08] rounded-xl py-2.5 px-4 text-white text-sm"
                     />
                     <input
@@ -323,7 +323,7 @@ export default function AdminZyphex() {
                             {promos.map((p) => (
                                 <li key={p.id} className="flex items-center justify-between text-sm bg-[#0D1117] rounded-lg px-3 py-2 border border-[#30363D]">
                                     <span className="font-mono font-bold text-white">{p.code}</span>
-                                    <span className="text-[#00E676]">{p.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} WEVOX</span>
+                                    <span className="text-[#00E676]">{p.amountZyphex.toLocaleString('en-US', { maximumFractionDigits: 2 })} ZYPHEX</span>
                                     <span className="text-[#8B949E]">{p.usedCount} / {p.maxUses}</span>
                                     <span className="text-[#8B949E] text-[10px]">{p.createdAt?.slice(0, 10)}</span>
                                 </li>

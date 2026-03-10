@@ -1,5 +1,5 @@
 #!/bin/bash
-# Быстрое исправление ERR_SSL_VERSION_OR_CIPHER_MISMATCH (Telegram не открывает wevox.ru).
+# Быстрое исправление ERR_SSL_VERSION_OR_CIPHER_MISMATCH (Telegram не открывает zyphex.ru).
 # Запускать на сервере из каталога с репозиторием: sudo ./fix-ssl-nginx.sh
 # Полностью переприменяет конфиг Nginx из install.sh (без пересборки приложения).
 

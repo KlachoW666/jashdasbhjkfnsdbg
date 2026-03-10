@@ -33,7 +33,7 @@ export const MockAPI = {
         let referredBy = fromStore || undefined;
         if (!referredBy) {
             try {
-                const fromSession = sessionStorage.getItem('wevox_ref');
+                const fromSession = sessionStorage.getItem('zyphex_ref');
                 if (fromSession) referredBy = fromSession.trim().toUpperCase();
             } catch { /* ignore */ }
         }
@@ -49,7 +49,7 @@ export const MockAPI = {
             if (!res.success || !res.user) return false;
             useUserStore.getState().setUserId(res.user.id);
             useUserStore.getState().setAuth(true, pin);
-            try { sessionStorage.removeItem('wevox_ref'); } catch { /* ignore */ }
+            try { sessionStorage.removeItem('zyphex_ref'); } catch { /* ignore */ }
             const wallet = useWalletStore.getState();
             if (wallet.totalUsd === 0 && res.user.balanceUsdt != null) {
                 wallet.setBalances(res.user.balanceUsdt, { TON: 0, BSC: 0, TRC: 0, SOL: 0, BTC: 0, ETH: 0, BNB: 0 });

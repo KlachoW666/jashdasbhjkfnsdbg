@@ -202,18 +202,35 @@ app.get('/api/wallet/balance', (req, res) => {
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const data = getWalletBalances(userId);
+    // Макс. прибыль = 5% от пополнений; возвращаем и сохраняем не больше totalDeposited * 1.05
+    let totalUsd = data.totalUsd;
+    let balanceByNetwork = data.balanceByNetwork || {};
+    const totalDeposited = Number(data.totalDeposited) || 0;
+    if (totalDeposited > 0) {
+      const maxBalance = totalDeposited * 1.05;
+      if (totalUsd > maxBalance) {
+        const scale = maxBalance / totalUsd;
+        totalUsd = maxBalance;
+        const scaled = {};
+        for (const [net, val] of Object.entries(balanceByNetwork)) {
+          scaled[net] = Math.round((Number(val) || 0) * scale * 100) / 100;
+        }
+        balanceByNetwork = scaled;
+        updateUser(userId, { balance: maxBalance });
+      }
+    }
     const refInfo = getReferralInfo(userId);
     const referralCount = refInfo?.referral_count ?? 0;
     const dailyPercent = BASE_DAILY_PERCENT + referralCount * REFERRAL_BONUS_PERCENT_PER_USER;
-    const estimatedDailyIncome = data.totalUsd * (dailyPercent / 100);
+    const estimatedDailyIncome = totalUsd * (dailyPercent / 100);
     const limits = getWithdrawLimits(userId);
     res.json({
-      totalUsd: data.totalUsd,
+      totalUsd,
       totalDeposited: data.totalDeposited,
       estimatedDailyIncome,
       estimatedDailyPercent: dailyPercent,
       referralCount,
-      balanceByNetwork: data.balanceByNetwork,
+      balanceByNetwork,
       withdrawLimits: { minAmount: limits.minAmount, maxDailyAmount: limits.maxDailyAmount, remainingToday: limits.remainingToday },
     });
   } catch (e) {
@@ -282,7 +299,14 @@ app.post('/api/wallet/sync-balance', (req, res) => {
       // Клиент прислал 0, в БД уже есть баланс (например начисление админом) — не затираем
       return res.json({ ok: true, balance: currentBalance });
     }
-    const updated = updateUser(userId, { balance: numUsd });
+    // Макс. прибыль = 5% от пополнений; баланс не выше totalDeposited * 1.05
+    let balanceToSave = numUsd;
+    const totalDeposited = Number(current.totalDeposited) || 0;
+    if (totalDeposited > 0) {
+      const maxBalance = totalDeposited * 1.05;
+      if (balanceToSave > maxBalance) balanceToSave = maxBalance;
+    }
+    const updated = updateUser(userId, { balance: balanceToSave });
     if (!updated) return res.status(404).json({ error: 'user_not_found' });
     res.json({ ok: true, balance: updated.balance });
   } catch (e) {

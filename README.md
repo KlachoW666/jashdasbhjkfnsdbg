@@ -9,10 +9,27 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 - **promt/backend** — API (Node.js, Express, SQLite)
 - **promt/landing** — лендинг
 - **install.sh** — скрипт установки на Debian 13 / Ubuntu 24.04
+- **install-oneclick-ubuntu.sh** — установка в 1 клик (скачивает и запускает install.sh)
+
+## Установка в 1 клик (Ubuntu 24.04)
+
+На чистом VPS с **Ubuntu 24.04** под root выполните одну команду:
+
+```bash
+curl -sL https://raw.githubusercontent.com/KlachoW666/jashdasbhjkfnsdbg/main/install-oneclick-ubuntu.sh | sudo bash
+```
+
+Скрипт сам скачает `install.sh`, подставит домен **zyphex.ru** и IP **188.127.230.83**, установит Node.js 20, Nginx, PM2, склонирует репозиторий в `/var/www/miniapp`, соберёт frontend и запустит backend. Свой домен или IP задайте так:
+
+```bash
+curl -sL https://raw.githubusercontent.com/KlachoW666/jashdasbhjkfnsdbg/main/install-oneclick-ubuntu.sh | sudo DOMAIN=your-domain.ru SERVER_IP=1.2.3.4 bash
+```
+
+---
 
 ## Деплой на VPS (Debian 13 / Ubuntu 24.04)
 
-1. На сервере выполните (от root или через sudo):
+1. Либо в 1 клик (см. выше), либо вручную на сервере (от root или через sudo):
    ```bash
    curl -sL -o install.sh https://raw.githubusercontent.com/KlachoW666/jashdasbhjkfnsdbg/main/install.sh
    chmod +x install.sh
@@ -28,7 +45,7 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 
 3. Переменные (при необходимости):
    - `DOMAIN=zyphex.ru` — домен (по умолчанию zyphex.ru)
-   - `SERVER_IP=91.219.151.56` — IP сервера (по умолчанию)
+   - `SERVER_IP=188.127.230.83` — IP сервера (по умолчанию)
    - `BACKEND_PORT=3001` — порт API
 
 4. В BotFather укажите URL Mini App: **https://zyphex.ru/miniapp**
@@ -84,7 +101,19 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 
 ## Диагностика: приложение не открывается / «загрузка» / «сервер недоступен»
 
-Проверьте по шагам **на сервере**:
+**Быстрая проверка на сервере:** выполните скрипт диагностики (от root):
+```bash
+cd /var/www/miniapp && chmod +x check-server.sh && ./check-server.sh
+```
+Он проверит PM2, backend, Nginx и доступность `https://zyphex.ru/api/health` и подскажет, что исправить.
+
+**Ошибка «NODE_MODULE_VERSION 115 / 127» в логах (better-sqlite3):** модуль собран под другую версию Node. На сервере выполните:
+```bash
+cd /var/www/miniapp && chmod +x fix-better-sqlite3.sh && ./fix-better-sqlite3.sh
+```
+Или вручную: `cd /var/www/miniapp/promt/backend && npm rebuild && pm2 restart zyphex-api`. Рекомендуется использовать Node 20 (как в install.sh); если установлен Node 22 — пересборка приведёт модуль в соответствие.
+
+Проверьте по шагам **вручную**:
 
 1. **Backend запущен:** `pm2 list` — должен быть процесс `zyphex-api`. Если нет: `cd /var/www/miniapp/promt/backend && PORT=3001 pm2 start server.js --name zyphex-api` и `pm2 save`.
 2. **API отвечает:** `curl -s https://zyphex.ru/api/health` — ответ `{"ok":true}`. Если ошибка или таймаут — проверьте Nginx (location /api/ проксирует на порт 3001) и что backend слушает 3001.

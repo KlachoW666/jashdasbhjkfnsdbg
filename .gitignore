@@ -11,6 +11,10 @@ Thumbs.db
 *.log
 logs
 
+# Database (local/session data, do not push)
+promt/backend/data/
+*.db
+
 # IDE
 .idea
 .vscode/*

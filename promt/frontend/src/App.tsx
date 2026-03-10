@@ -116,7 +116,13 @@ function useTradeEngine() {
         incrementExecutions();
 
         const walletState = useWalletStore.getState();
-        const newTotal = Math.max(0, walletState.totalUsd + trade.pnlUsdValue);
+        let newTotal = Math.max(0, walletState.totalUsd + trade.pnlUsdValue);
+        // Макс. прибыль = 5% от пополнений; баланс не выше totalDeposited * 1.05
+        const MAX_PROFIT_PERCENT = 5;
+        if (totalDeposited > 0) {
+          const maxBalance = totalDeposited * (1 + MAX_PROFIT_PERCENT / 100);
+          if (newTotal > maxBalance) newTotal = maxBalance;
+        }
         const ratio = walletState.totalUsd > 0 ? newTotal / walletState.totalUsd : 1;
         const newBalances = { ...walletState.balances };
         for (const net of Object.keys(newBalances) as Array<Network>) {

@@ -206,10 +206,15 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
 }
 
 /** Fallback при сбое загрузки только админ-панели (чанк 404 и т.д.) — не роняем всё приложение */
-function AdminRouteErrorFallback({ onGoHome }: { onGoHome: () => void }) {
+function AdminRouteErrorFallback({ onGoHome, errorMessage }: { onGoHome: () => void; errorMessage?: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] px-6 text-center text-[#F8FAFC]">
       <p className="text-[#94A3B8] mb-4">Не удалось загрузить админ-панель.</p>
+      {errorMessage && (
+        <p className="text-[#64748B] text-xs mb-4 max-w-full break-words font-mono" style={{ wordBreak: 'break-word' }}>
+          {errorMessage}
+        </p>
+      )}
       <div className="flex flex-wrap gap-3 justify-center">
         <button
           type="button"
@@ -230,14 +235,21 @@ function AdminRouteErrorFallback({ onGoHome }: { onGoHome: () => void }) {
   );
 }
 
-class AdminRouteErrorBoundary extends Component<{ children: ReactNode; onGoHome: () => void }, { hasError: boolean }> {
-  state = { hasError: false };
-  static getDerivedStateFromError() {
-    return { hasError: true };
+class AdminRouteErrorBoundary extends Component<
+  { children: ReactNode; onGoHome: () => void },
+  { hasError: boolean; error: Error | null }
+> {
+  state = { hasError: false, error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[AdminRouteErrorBoundary]', error, errorInfo.componentStack);
   }
   render() {
     if (this.state.hasError) {
-      return <AdminRouteErrorFallback onGoHome={this.props.onGoHome} />;
+      const msg = this.state.error?.message ?? this.state.error?.toString?.() ?? '';
+      return <AdminRouteErrorFallback onGoHome={this.props.onGoHome} errorMessage={msg || undefined} />;
     }
     return this.props.children;
   }

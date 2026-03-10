@@ -43,6 +43,7 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
     type PromptType = 'balance' | 'bonus' | 'notes' | null;
     const [promptState, setPromptState] = useState<{ type: PromptType; title: string; placeholder: string; current: string } | null>(null);
     const [promptInput, setPromptInput] = useState('');
+    const [confirmReset, setConfirmReset] = useState(false);
 
     useEffect(() => {
         if (isOpen && adminUserId) {
@@ -185,7 +186,6 @@ export default function UserManagementModal({ isOpen, onClose }: Props) {
         setPromptState({ type: 'notes', title: 'Заметка', placeholder: 'Текст...', current });
     };
 
-    const [confirmReset, setConfirmReset] = useState(false);
     const handleResetBalance = () => {
         if (!selectedUser || !adminUserId) return;
         setConfirmReset(true);

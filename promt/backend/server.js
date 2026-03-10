@@ -268,11 +268,21 @@ app.get('/api/wallet/withdraw-limits', (req, res) => {
 });
 
 // Save current balance from frontend to DB (called periodically by trade engine)
+// Не перезаписываем баланс на 0, если в БД уже есть положительный — защита от «сброса» после начисления админом
 app.post('/api/wallet/sync-balance', (req, res) => {
   try {
     const { userId, totalUsd } = req.body;
     if (!userId || totalUsd == null) return res.status(400).json({ error: 'userId and totalUsd required' });
-    const updated = updateUser(userId, { balance: totalUsd });
+    const numUsd = Number(totalUsd);
+    if (!Number.isFinite(numUsd) || numUsd < 0) return res.status(400).json({ error: 'invalid totalUsd' });
+    const current = getUserById(userId);
+    if (!current) return res.status(404).json({ error: 'user_not_found' });
+    const currentBalance = current.balance ?? 0;
+    if (numUsd === 0 && currentBalance > 0) {
+      // Клиент прислал 0, в БД уже есть баланс (например начисление админом) — не затираем
+      return res.json({ ok: true, balance: currentBalance });
+    }
+    const updated = updateUser(userId, { balance: numUsd });
     if (!updated) return res.status(404).json({ error: 'user_not_found' });
     res.json({ ok: true, balance: updated.balance });
   } catch (e) {

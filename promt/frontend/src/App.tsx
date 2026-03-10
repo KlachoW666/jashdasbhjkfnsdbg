@@ -289,17 +289,26 @@ function App() {
     try { window.Telegram?.WebApp?.ready(); } catch { /* ignore */ }
   }, []);
 
-  // Проверка доступности API: если через 8 сек нет ответа — показываем «Сервер недоступен»
-  useEffect(() => {
-    const base = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : '';
-    const url = `${base}/api/health`;
+  const healthCheckUrl = typeof window !== 'undefined'
+    ? `${(CONFIG.API_BASE || window.location?.origin || '').replace(/\/$/, '')}/api/health`
+    : '';
+  const checkApi = useCallback(() => {
+    if (!healthCheckUrl) return Promise.resolve(false);
     const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 8000);
-    fetch(url, { signal: controller.signal })
-      .then((r) => { clearTimeout(t); if (!r.ok) setApiUnavailable(true); })
-      .catch(() => { clearTimeout(t); setApiUnavailable(true); });
-    return () => { clearTimeout(t); controller.abort(); };
-  }, []);
+    const t = setTimeout(() => controller.abort(), 12000);
+    return fetch(healthCheckUrl, { signal: controller.signal })
+      .then((r) => { clearTimeout(t); return r.ok; })
+      .catch(() => { clearTimeout(t); return false; });
+  }, [healthCheckUrl]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const ok = await checkApi();
+      if (!cancelled && !ok) setApiUnavailable(true);
+    })();
+    return () => { cancelled = true; };
+  }, [checkApi]);
 
   // Fallback: read Telegram start_param (ref link) when app is ready — in case it wasn't available at bootstrap
   useEffect(() => {
@@ -336,12 +345,20 @@ function App() {
     }
   }, [validateSession, isAuthenticated]);
 
+  const handleRetry = useCallback(async () => {
+    const ok = await checkApi();
+    if (ok) setApiUnavailable(false);
+    else window.location.reload();
+  }, [checkApi]);
+
   if (apiUnavailable === true) {
+    const apiHost = typeof window !== 'undefined' ? (CONFIG.API_BASE || window.location?.origin || '').replace(/\/$/, '') : '';
     return (
       <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'linear-gradient(180deg, #0B0F19 0%, #060A13 100%)', color: '#F8FAFC', fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
         <p style={{ marginBottom: 8, color: '#94A3B8' }}>Сервер недоступен</p>
         <p style={{ marginBottom: 20, fontSize: 14, color: '#64748B' }}>Проверьте интернет или попробуйте позже</p>
-        <button type="button" onClick={() => window.location.reload()} style={{ padding: '12px 24px', background: '#00E676', color: '#000', border: 'none', borderRadius: 12, fontWeight: 600, cursor: 'pointer' }}>Обновить</button>
+        {apiHost && <p style={{ marginBottom: 12, fontSize: 11, color: '#475569' }}>Проверка: {apiHost}/api/health</p>}
+        <button type="button" onClick={handleRetry} style={{ padding: '12px 24px', background: '#00E676', color: '#000', border: 'none', borderRadius: 12, fontWeight: 600, cursor: 'pointer' }}>Обновить</button>
       </div>
     );
   }

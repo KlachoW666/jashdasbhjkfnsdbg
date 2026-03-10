@@ -8,19 +8,19 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
 - **promt/frontend** — Mini App (React + Vite)
 - **promt/backend** — API (Node.js, Express, SQLite)
 - **promt/landing** — лендинг
-- **install.sh** — скрипт установки на Ubuntu 24.04
+- **install.sh** — скрипт установки на Debian 13 / Ubuntu 24.04
 
-## Деплой на VPS (Ubuntu 24.04)
+## Деплой на VPS (Debian 13 / Ubuntu 24.04)
 
 1. На сервере выполните (от root или через sudo):
    ```bash
-   curl -sL -o install.sh https://raw.githubusercontent.com/KlachoW666/raimeswevo/master/install.sh
+   curl -sL -o install.sh https://raw.githubusercontent.com/KlachoW666/jashdasbhjkfnsdbg/main/install.sh
    chmod +x install.sh
    sudo ./install.sh
    ```
    Или клонируйте репозиторий и запустите `./install.sh` из корня.
 
-2. Скрипт:
+2. Скрипт (проверен на **Debian 13** и Ubuntu 24.04):
    - Ставит Node.js 20, Nginx, PM2, UFW
    - Клонирует этот репозиторий в `/var/www/miniapp`
    - Собирает frontend, запускает backend (порт 3001) **через PM2** — приложение всегда включено: перезапуск при падении и автозапуск при перезагрузке сервера
@@ -74,7 +74,7 @@ Telegram Web App для авто-трейдинга: пополнение USDT, 
    ```
    Убедитесь, что в Nginx проксируется не только `/api/`, но и именно этот путь; при необходимости добавьте в конфиг location для `/api/telegram-webhook`. После этого при отправке /start бот будет отвечать информацией о приложении.
 
-**Важно:** В репозитории [raimeswevo](https://github.com/KlachoW666/raimeswevo) используется ветка **master**. install.sh клонирует и обновляет именно её (`origin/master`).
+**Важно:** В репозитории [jashdasbhjkfnsdbg](https://github.com/KlachoW666/jashdasbhjkfnsdbg) используется ветка **main**. install.sh клонирует и обновляет именно её (`origin/main`).
 
 **Backend всегда включён (PM2):** API запускается через PM2 с автоперезапуском при сбое и автозапуском при загрузке сервера. Проверить: `pm2 list`, логи: `pm2 logs zyphex-api`, перезапуск вручную: `pm2 restart zyphex-api`.
 

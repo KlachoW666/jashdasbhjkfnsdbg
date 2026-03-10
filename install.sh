@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Ubuntu 24.04 Setup Script for Telegram Mini App (Run as Root)
+# Debian 13 / Ubuntu 24.04 — установка Telegram Mini App (запуск от root)
 set -e
 
 echo "======================================"
-echo "    Starting Ubuntu 24.04 Setup...    "
+echo "    Zyphex Auto — Setup (Debian/Ubuntu)    "
 echo "======================================"
 
 # 1. Update system and install basic dependencies
@@ -29,13 +29,13 @@ npm install -g pm2
 # 4. Clone or update repository
 echo "[4/6] Setting up Application..."
 APP_DIR="/var/www/miniapp"
-REPO_URL="https://github.com/KlachoW666/raimeswevo.git"
+REPO_URL="https://github.com/KlachoW666/jashdasbhjkfnsdbg.git"
 
 if [ -d "$APP_DIR/.git" ]; then
     echo "Updating existing repo (database and settings are preserved)..."
     cd "$APP_DIR"
     git fetch origin
-    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || BRANCH=master
+    BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || BRANCH=main
     git reset --hard "origin/$BRANCH"
     cd - >/dev/null
 else
@@ -43,7 +43,7 @@ else
         echo "Removing non-git directory..."
         rm -rf "$APP_DIR"
     fi
-    git clone -b master "$REPO_URL" "$APP_DIR"
+    git clone -b main "$REPO_URL" "$APP_DIR"
 fi
 
 # --- Frontend ---
@@ -79,7 +79,7 @@ fi
 # 5. Configure Nginx (HTTP + HTTPS) for domain ZYPHEX.RU
 echo "[5/6] Configuring Nginx..."
 DOMAIN="${DOMAIN:-zyphex.ru}"
-SERVER_IP="${SERVER_IP:-91.219.151.56}"
+SERVER_IP="${SERVER_IP:-188.127.230.83}"
 BACKEND_PORT="${BACKEND_PORT:-3001}"
 SSL_DIR="/etc/nginx/ssl/miniapp"
 mkdir -p "$SSL_DIR"
@@ -192,6 +192,8 @@ NGINXEOF
 
 ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
+# Удалить конфиг, который certbot мог создать для домена (иначе «location directive is not allowed here»)
+rm -f /etc/nginx/sites-enabled/"$DOMAIN" /etc/nginx/sites-enabled/"$DOMAIN".conf
 nginx -t && systemctl restart nginx
 systemctl enable nginx 2>/dev/null || true
 
@@ -289,6 +291,8 @@ server {
     }
 }
 NGINXEOF2
+# Снова убрать конфиг certbot для домена, чтобы активен был только miniapp
+rm -f /etc/nginx/sites-enabled/"$DOMAIN" /etc/nginx/sites-enabled/"$DOMAIN".conf
 nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
 
 # 6. Verification and summary
